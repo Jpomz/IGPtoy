@@ -1,16 +1,18 @@
 Package: IGPtoy
-Title: What the Package Does (One Line, Title Case)
+Title: Simulate Intraguild Predation Dynamics in Three Species Community 
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Justin",
+           family = "Pomeranz",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "jfpomeranz@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+Description: This package simulates species dynamics in multiple patches across 2D habitats. Patches can be isolated or connected. Dispersal can occur between patches to. Disturbances can also occur, reducing the community abundance by a given magnitude. If the basal species, B goes extinct, the higher trophic  levels, C, and P, also go extinct.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
