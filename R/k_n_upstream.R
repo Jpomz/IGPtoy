@@ -45,6 +45,7 @@ k_n_upstream <- function(k_base = 150,
                 max = k_max_exponent)
   k <- round(
     k_base + k_c * n_upstream^k_exp)
-  b = (r_max - 1) /k
-  list(b = b, k = k)
+  b = calc_b(r_max = r_max, k = k)
+  list(k = k,
+       b = b)
 }
