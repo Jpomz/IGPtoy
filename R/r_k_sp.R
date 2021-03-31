@@ -27,6 +27,8 @@
 #'@seealso `prey_preference`, `k_n_upstream`
 #'
 #' @examples
+#' r_k_sp(k_b = 500, r_b = 2.5, ebc = 2,ebp = 2, ecp = 2, alphac = 4, alphap = 4, betac = 20, betap = 20, P_pref = NULL)
+#'
 r_k_sp <- function(k_b = 500,
                 r_b = 2.5,
                 ebc = 2,

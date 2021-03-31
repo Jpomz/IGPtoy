@@ -1,4 +1,4 @@
-#' Title
+#' population dynamic function for each time step
 #'
 #' @param N Abundance matrix at time t
 #' @param P_pref value for the predator preference of B over C, numeric between 0-1 or NULL
@@ -36,24 +36,25 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
 
   # number of prey consumed
   #wij = number of prey i eaten by predator j
-  wbc = alphabc * N[1,]*N[2,] / (betabc*N[2,] + N[1,])
-  wbp = P_pref * (alphap *N[1,]*N[3,]/(betap*N[3,] +N[1,]))
-  wcp = (1 - P_pref) * (alphap*N[2,]*N[3,]/(betap*N[3,]+N[2,]))
+  wbc = alphabc * N[1,] * N[2,] / (betabc * N[2,] + N[1,])
+  wbp = P_pref * (alphap * N[1,] * N[3,]/(betap * N[3,] + N[1,]))
+  wcp = (1 - P_pref) * (alphap * N[2,] * N[3,]/(betap * N[3,] + N[2,]))
 
   # survival ####
-  B_prime = v_s0[1]*(N[1,] - wbc - wbp)
-  C_prime = v_s0[2]*(N[2,] - wcp)
-  P_prime = v_s0[3]*N[3,]
+  B_prime = v_s0[1] * (N[1,] - wbc - wbp)
+  C_prime = v_s0[2] * (N[2,] - wcp)
+  P_prime = v_s0[3] * N[3,]
 
   # reproduction ####
-  B_t1 = (r_max / (1+b*B_prime))*B_prime
-  C_t1 = (ebc*alphabc*N[1,] /
-            (betabc*N[2,] + N[1,])) * # B converted to C
+  B_t1 = (r_max / (1 + b * B_prime)) * B_prime
+  C_t1 = (ebc * alphabc * N[1,] /
+            (betabc * N[2,] + N[1,])) * # B converted to C
     C_prime # number of C
-  P_t1 = ((P_pref * (ebp*alphap*N[1,] /
-                       (betap*N[3,] + N[1,]))) + # B converted to P
-            ((1 - P_pref) * (ecp*alphap*N[2,] /
-                               (betap*N[3,] + N[2,])))) * # C converted to P
+  P_t1 = ((P_pref * (ebp * alphap * N[1,] /
+                       (betap * N[3,] + N[1,]))) + # B converted to P
+            ((1 - P_pref) *
+               (ecp * alphap * N[2,] /
+                  (betap * N[3,] + N[2,])))) * # C converted to P
     P_prime # number of P
 
   N = rbind(B_t1, C_t1, P_t1)

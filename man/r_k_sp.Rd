@@ -45,13 +45,17 @@ a list with 3 named elements: \code{max_r} which has the maximum reproductive ra
 Maximum reproductive rate and carrying capacity for all three species
 }
 \details{
-This function calculates the maximum reproductive rate and carrying capacity for each species in the IGP simulation communities. This can be used to estimate what effect different parameters will have. Carrying capacities are calculated assuming prey resources are at their respective carrying capacities, hence the return values estimate upper ceiling of population abundances for a given set of parameters.
+This function calculates the maximum reproductive rate and carrying capacity for each species in the IGP simulation communities. This can be used to estimate what effect different parameters will have. Carrying capacities are calculated assuming prey resources are at their respective carrying capacities, hence the return values estimate upper ceiling of population abundances for a given set of parameters. This function does also not account for indirect effects, i.e. C predation upon B lowering resource abundance for P.
 
 Carrying capacity and maximum reproductive rate of the basal species is set by the user.
 
 Maximum reproductive rates for C are calculated as \code{r_c = ebc * alphac}. Carrying capacity is calculated as \code{k_c = k_b*(r_c - 1) / betac}
 
 Maximum reproductive rates for the predator are calculated separately for both of its prey, and depends on its preference of prey resource B over C. If \code{P_pref = NULL}, the default, the preference is calculated according to the \code{prey_preference()} function.
+}
+\examples{
+r_k_sp(k_b = 500, r_b = 2.5, ebc = 2,ebp = 2, ecp = 2, alphac = 4, alphap = 4, betac = 20, betap = 20, P_pref = NULL)
+
 }
 \seealso{
 \code{prey_preference}, \code{k_n_upstream}

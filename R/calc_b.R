@@ -7,6 +7,8 @@
 #' @export
 #'
 #' @examples
+#' calc_b(r_max = 2, k = 100)
+#'
 calc_b <- function(r_max, k){
   (r_max - 1) / k
 }

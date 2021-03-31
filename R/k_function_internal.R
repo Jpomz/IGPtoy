@@ -15,6 +15,8 @@
 #' @export
 #'
 #' @examples
+#' k_function_internal(k_function, k_base, r_max, n_upstream, n_patch, k_c, k_min_exponent, k_max_exponent, river_network_structure, environment_value)
+#'
 k_function_internal <- function(k_function, k_base, r_max,
                                 n_upstream, n_patch,
                                 k_c, k_min_exponent, k_max_exponent,

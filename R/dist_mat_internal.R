@@ -1,4 +1,4 @@
-#' Title
+#' Internal distance matrix function
 #'
 #' @param dist_mat Distance matrix describing the spatial arrangement of patches. should be a square matrix with `ncol = nrow = n_patch` and `diagonal = 0`. If `dist_mat = NULL`, a square landscape with dimension `landscape_size` and `n_patch` randomly distributed will be calculated.
 #' @param landscape_size Size of each side of randomly generated 2D habitat. Only used if `dist_mat = NULL`
@@ -8,6 +8,8 @@
 #' @export
 #'
 #' @examples
+#' dist_mat_internal(dist_mat, landscape_size, n_patch)
+#'
 dist_mat_internal <- function(dist_mat, landscape_size, n_patch){
   if(!is.null(dist_mat)){
     if (!is.matrix(dist_mat))

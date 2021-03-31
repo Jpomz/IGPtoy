@@ -13,6 +13,8 @@
 #' @export
 #'
 #' @examples
+#' prey_preference(e1 = 2, e2 = 1, N1 = 100, N2 = 50)
+#'
 prey_preference <- function(e1, e2, N1, N2){
   if(any(is.na(c(e1, e2, N1, N2)))){
     stop("all inputs to `prey_preference()` need to be defined,\n one or more input values is 'NA' or 'NaN'" )

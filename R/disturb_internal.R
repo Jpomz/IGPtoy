@@ -6,19 +6,27 @@
 #' @param environment_value Vector of numbers describing an environmental condition in patch `i`. This vector will be scaled from 0 to 1 using the inverse logit function. This is designed to take the output of `df_patch$environment` from `brnet()` as an input.
 #' @param disturb_type Character vector of one of `c("point-source", "regional", or NULL)`. "point-source" applies disturbances randomly to individual patches. If it is a river network, the disturbance travels downstream and decays according to the `disturb_decay`  If it is a 2D network, the disturbance decays with increasing distance from disturbed patch, and is controlled by `disturb_rho` argument
 #' @param disturb_p probability of disturbance occurring. If `disturb_type = "point-source"`, whether or not a disturbance occurs is determined independently for each patch via `rbinom(n = n_patch, size = 1, prob = disturb_p)`. If `disturb_type = "regional"`, disturbance for the entire meta-community is determined in each time step via `rbinom(n = 1, size = 1, prob = disturb_p)`.
-#' @param disturb_mag numeric value (0 to 1) controlling the initial magnitude of impact given a disturbance occurs. 0.1, 0.75 = population abundances reduced by 10 or 75%, respectively. Assuming a single disturbance (i.e. adjcanet or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.
+#' @param disturb_mag numeric value (0 to 1) controlling the initial magnitude of impact given a disturbance occurs. 0.1, 0.75 = population abundances reduced by 10 or 75%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.
 #' @param disturb_rho integer >= 0. controls how quickly disturbance diminish with distance: 0 = no decay, all patches experience equal impact; 10 impact rapidly decays, with adjacent patches hardly being affected.
 #' @param disturb_decay numeric from 0 to 1. Indicates what percent of the disturbance remains at the next patch (i.e. 0.1, 0.5, 0.75, 1 = 10, 50, 75 and 100% of disturbance impacts in adjacent patch, respectively.
 #'
 #' @return List with two elements. `N` = abundance matrix after accounting for disturbances. Values don't necessarily have to be integers. Numeric-double values will be converted to integer with `rpois()` in the simulation function. `patch_extinction` is an integer vector of `length = n_patch` indiciating if a disturbance did happen (1) or did not happen (0).
 #'
 #' @export
+#' @importFrom stats rbinom
 #'
 #' @examples
-disturb_internal <- function(N, adjacency_matrix, dist_mat,
+#' disturb_internal(N, adjacency_matrix, dist_mat, environment_value, disturb_type, disturb_p, disturb_mag, disturb_rho, disturb_decay)
+#'
+disturb_internal <- function(N,
+                             adjacency_matrix,
+                             dist_mat,
                              environment_value,
-                             disturb_type, disturb_p, disturb_mag,
-                             disturb_rho, disturb_decay){
+                             disturb_type,
+                             disturb_p,
+                             disturb_mag,
+                             disturb_rho,
+                             disturb_decay){
   n_patch <-  ncol(N)
   # no disturbances
   if(is.null(disturb_type)){

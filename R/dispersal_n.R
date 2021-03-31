@@ -1,9 +1,12 @@
-#' Title
+#' Calculate number of individuals dispersing from patch i to j
 #'
 #' @param N Abundance matrix with `nrow = n_sp = 3` and `ncol = n_patch`. Rows 1:3 correspond to species B, C, and P respectively.
 #' @param v_p_dispersal A vector of dispersal probabilities of length = 3. in `igp_sim()`, this is controlled with the `p_dispersal` argument. Values should be from 0 to 1
-#' @param theta Parameter controlling the distance decay function, of either length = 1 (same for all species) or length = 3 (vary by species). LArger values of theta result in a faster decline of dispersal distance.
+#' @param v_theta Vector of length = 3, Parameters controlling the distance decay function. Larger values of theta result in a faster decline of dispersal distance. `v_theta` is caluclated internally in `igp_sim` based on the `theta` argument.
 #' @param dist_mat a distance matrix with `nrow = ncol = n_patch` and diagonal == 0.
+#' @param m_b_dispersal dispersal matrix for species B. This and the following 2 matrices are calculated internally in `igp_sim()`
+#' @param m_c_dispersal dispersal matrix for species C.
+#' @param m_p_dispersaldispersal matrix for species P.
 #'
 #' @details This function is used internally in `igp_sim()` to calculate the number of individuals of each dispersing from patch i to patch j. Emigrants from patch i are more likely to become Immigrants to patch j if the patches are closer together.
 #'
@@ -22,31 +25,17 @@
 #' disperal_n(N = N, v_p_dispersal = 0.25, theta = 1, dist_mat = dist_mat)
 #'
 #'
-dispersal_n <- function(N, v_p_dispersal, theta, dist_mat){
+dispersal_n <- function(N, v_p_dispersal, v_theta,
+                        dist_mat,
+                        m_b_dispersal,
+                        m_c_dispersal,
+                        m_p_dispersal){
+
   test1 = all(v_p_dispersal <=1) & all(v_p_dispersal>=0)
   if (test1 == FALSE){
     stop("in dispersal_n, v_p_dispersal must be between 0 and 1")
   }
-  if(length(theta) != 1 & length(theta) !=3){
-    stop("in dispersal_n(), Theta must be length 1 or 3")
-  }
-  if(length(theta) == 1){
-    v_theta = rep(theta, 3)
-  }
-  if(length(theta) == 3){
-    v_theta = theta
-  }
 
-  # dispersal matrices per species
-  # species B
-  m_b_dispersal <- data.matrix(exp(-v_theta[1] * dist_mat))
-  diag(m_b_dispersal) <- 0
-  # species C
-  m_c_dispersal <- data.matrix(exp(-v_theta[2] * dist_mat))
-  diag(m_c_dispersal) <- 0
-  # species P
-  m_p_dispersal <- data.matrix(exp(-v_theta[3] * dist_mat))
-  diag(m_p_dispersal) <- 0
 
   # estimated Emmigrants
   m_e_hat <- N * v_p_dispersal
