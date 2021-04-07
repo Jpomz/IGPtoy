@@ -5,13 +5,13 @@
 #' @param dist_mat square distance matrix describing distance of all patches. If it is NULL, assumes a square landscape with `length = landscape_size`
 #' @param landscape_size single numeric value. Length of a landscape on a side.
 #' @param adjacency_matrix square matrix describing which patches are adjacent to one another.
-#' @param k_function character string, one of: `c("patches upstream", "random", "environment", NULL)`. `"patches upstream"` calculates carrying capacity based on the number of nodes upstream. `"random"` assigns an integer value to each patch from a Poisson distribution with `lambda = k_base`. `"environment"` calculates K based on `df_patch$environment` value returned from `brnet()` function. `NULL` assumes that `k = k_base` in all patches.
-#' @param n_upstream numeric vector of `length = n_patch`. used if `k_function = "patches_upstream"`
+#' @param k_function character string, one of: `c("patches-upstream", "random", "environment", NULL)`. `"patches-upstream"` calculates carrying capacity based on the number of nodes upstream. `"random"` assigns an integer value to each patch from a Poisson distribution with `lambda = k_base`. `"environment"` calculates K based on `df_patch$environment` value returned from `brnet()` function. `NULL` assumes that `k = k_base` in all patches.
+#' @param n_upstream numeric vector of `length = n_patch`. used if `k_function = "patches-upstream"`
 #' @param environment_value numeric vector of `length = n_patch`. used if `k_function = "environment"`
 #' @param k_base single numeric value. Used to calculate carrying capacity, K. see ?k_function_internal for more.
-#' @param k_c single numeric value. Constant used to calculate K when `k_function = "patches_upstream`. Default = 10
-#' @param k_min_exponent single numeric value. Minimum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream`
-#' @param k_max_exponent single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream`
+#' @param k_c single numeric value. Constant used to calculate K when `k_function = "patches-upstream"`. Default = 10
+#' @param k_min_exponent single numeric value. Minimum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream"`
+#' @param k_max_exponent single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream"`
 #' @param p_dispersal numeric value (length should be one or 3). Probability of dispersal.
 #' @param theta numeric value of length 1 or 3. Dispersal parameter describing dispersal capability of species. If length(theta) = 1 it is the same for all three species. Can be set for each species with vector of length = 3.
 #' @param r_max single numeric value. Maximum reproductive number for the basal species, B, of the Beverton-Holt model.
@@ -53,7 +53,7 @@ igp_sim <- function(n_patch = 20,
                     landscape_size = 10,
                     adjacency_matrix = NULL,
                     k_function = NULL,
-                    #c("patches upstream", "random", "environment")
+                    #c("patches-upstream", "random", "environment")
                     n_upstream = NULL,
                     environment_value = NULL,
                     k_base = 150,
@@ -78,10 +78,12 @@ igp_sim <- function(n_patch = 20,
                     disturb_mag = 0.5,
                     disturb_rho = 1, # 2D habitats
                     disturb_decay = 0.75, # downstream
-                    t = 1000,
-                    plot_disturbance = TRUE,
-                    plot_fcl = TRUE,
-                    plot_patch_dynamics = TRUE){
+                    n_burnin = 200,
+                    n_timestep = 1000,
+                    plot_disturbance = FALSE,
+                    # add disturb_type = "regional" subroutine
+                    plot_fcl = FALSE,
+                    plot_patch_dynamics = FALSE){
   # need to import functions:
   # dplyr:: bind_rows %>%
   # tidyr:: pivot_longer
@@ -189,6 +191,9 @@ igp_sim <- function(n_patch = 20,
   ## carrying capacity wrapper function ####
   b_k_list <- k_function_internal(
     k_function = k_function,
+    k_c = k_c,
+    k_min_exponent = k_min_exponent,
+    k_max_exponent = k_max_exponent,
     k_base = k_base,
     r_max = r_max,
     n_upstream = n_upstream,
@@ -253,14 +258,17 @@ igp_sim <- function(n_patch = 20,
   output <- list()
   fcl_list <- list()
   # record starting conditions
-  fcl = get_fcl(N = N)
-  out = cbind(1:n_patch, t(N), i = 1, k, patch_extinction = 0, fcl)
-  colnames(out) <- c("patch", "B", "C", "P",
-                     "time", "basal_k", "disturbance", "fcl")
-  output[[1]] <- as.data.frame(out)
+  #fcl = get_fcl(N = N)
+  #out = cbind(1:n_patch, t(N), i = 1, k, patch_extinction = 0, fcl)
+  #colnames(out) <- c("patch", "B", "C", "P",
+  #                   "time", "basal_k", "disturbance", "fcl")
+  #output[[1]] <- as.data.frame(out)
 
+  counter = 1 # for recording output at end of simulation loop
+
+  n_sim = n_burnin + n_timestep
   ## simulation ####
-  for (i in 2:t+1){
+  for (i in seq_len(n_sim)){
     # dispersal at beginning of time step
     m_n_prime <- dispersal_n(N = N,
                              v_p_dispersal = v_p_dispersal,
@@ -318,38 +326,41 @@ igp_sim <- function(n_patch = 20,
     # make abundance of C and P = 0
     N[,N[1,] == 0] <- 0
 
+    if(i > n_burnin){
 
-    # food chain length state
-    fcl = fcl_prop(get_fcl(N = N))
+      # food chain length state
+      fcl = get_fcl(N = N)
 
-    # path_dynamics output
-    out = cbind(1:n_patch,
-                t(N),
-                i,
-                k,
-                patch_extinction,
-                fcl)
-    colnames(out) <- c("patch",
-                       "B",
-                       "C",
-                       "P",
-                       "time",
-                       "basal_k",
-                       "disturbance", "fcl")
-    output[[i]] <- as.data.frame(out)
-    fcl_list[[i]] <- fcl
-    #message("end of loop")
+      # path_dynamics output
+      out = cbind(1:n_patch,
+                  t(N),
+                  counter,
+                  k,
+                  patch_extinction,
+                  fcl)
+      colnames(out) <- c("patch",
+                         "B",
+                         "C",
+                         "P",
+                         "time",
+                         "basal_k",
+                         "disturbance", "fcl")
+      output[[counter]] <- as.data.frame(out)
+      fcl_list[[counter]] <- fcl_prop(fcl)
+      counter = counter + 1
+      #print(paste("loop iteration ", i))
+    }
   }
 
   # make sure that these functions are properly imported
   dat <- dplyr::bind_rows(output)
   dat <- tidyr::pivot_longer(dat, 2:4, names_to = "species")
 
-  fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 2:t)
+  fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 1:n_timestep)
   fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "fcl_state")
 
   # Plots -------------------------------------------------------------------
-
+# plot FCL ####
   # plot of food chain length
   if(plot_fcl == TRUE){
     fcl_plot <-
@@ -363,6 +374,8 @@ igp_sim <- function(n_patch = 20,
       NULL
     print(fcl_plot)
   }
+
+  # plot patch dynamics ####
   # plot of patch dynamics
   if(plot_patch_dynamics == TRUE){
 
@@ -401,7 +414,12 @@ igp_sim <- function(n_patch = 20,
       print(patch_plot)
     }
   }
+  # plot disturbance ####
   # plot of patches with disturbances
+
+  # add disturb_type = "regional" subroutine
+  # plot 5 random patches, but show time point when disturbance occurred
+  # title = "5 random patches experiencing regional disturbance"
   if(plot_disturbance == TRUE){
     dist_patch <- dplyr::filter(dat, disturbance == 1) %>%
       select(patch) %>% unique() %>% pull()

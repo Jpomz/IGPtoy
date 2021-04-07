@@ -31,7 +31,7 @@ k_function_internal <- function(k_function, k_base, r_max,
       return(list(k = k_base,
                   b = calc_b(r_max = r_max, k = k_base)))
     }} else{  # for branching river networks
-      if(k_function == "patches upstream"){
+      if(k_function == "patches-upstream"){
         if(river_network_structure == FALSE){
           message("***CAUTION*** \nk_function = `patches upstream` but distance matrix for river network not supplied;\nrelationship between k ~ patches uncertain")
         }

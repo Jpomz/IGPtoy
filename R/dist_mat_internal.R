@@ -22,7 +22,7 @@ dist_mat_internal <- function(dist_mat, landscape_size, n_patch){
       stop(
         "invalid distance matrix: diagonal elements must be zero")
     # df_xy_coord <- NULL
-    list(dist_mat <- dist_mat,
+    out = list(dist_mat = dist_mat,
          river_network_structure = TRUE)
     # add / make adj_matrix here
   }
@@ -37,7 +37,9 @@ dist_mat_internal <- function(dist_mat, landscape_size, n_patch){
     y_coord = runif(n_patch, 0, landscape_size)
     dist_mat = data.matrix(dist(cbind(x_coord, y_coord),
                                 diag = TRUE, upper = TRUE))
-    list(dist_mat = dist_mat,
+    out = list(dist_mat = dist_mat,
          river_network_structure = FALSE)
   }
+  out
 }
+

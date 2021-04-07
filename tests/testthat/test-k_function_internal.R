@@ -1,7 +1,8 @@
 test_that("k_function_internal 'NULL' returns k_base", {
   k_base = 150
   n_patch = 20
-  out <- suppressMessages(k_function_internal(k_function = NULL,
+  out <- suppressMessages(k_function_internal(
+    k_function = NULL,
                       k_base = k_base,
                       r_max = 2.5,
                       n_upstream = NULL,
@@ -27,7 +28,7 @@ test_that("k_function_internal 'NULL' returns k_base", {
 #                     environment_value = NULL)
 
 test_that("k_function_internal patches upstream, n_patch needs to be supplied", {
-  expect_error(k_function_internal(k_function = "patches upstream",
+  expect_error(k_function_internal(k_function = "patches-upstream",
                                      k_base = 150,
                                      r_max = 2.5,
                                      n_upstream = NULL,
@@ -41,7 +42,7 @@ test_that("k_function_internal 'patches upstream' returns list and length = n_pa
   n_patch = 20
   out <- suppressMessages(
     k_function_internal(
-      k_function = "patches upstream",
+      k_function = "patches-upstream",
       k_base = 150,
       r_max = 2.5,
       n_upstream = sample(1:20, 20),

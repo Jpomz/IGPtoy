@@ -25,7 +25,9 @@
 #' disperal_n(N = N, v_p_dispersal = 0.25, theta = 1, dist_mat = dist_mat)
 #'
 #'
-dispersal_n <- function(N, v_p_dispersal, v_theta,
+dispersal_n <- function(N,
+                        v_p_dispersal,
+                        v_theta,
                         dist_mat,
                         m_b_dispersal,
                         m_c_dispersal,
