@@ -1,8 +1,8 @@
 #' Title
 #'
-#' @param fcl Vector of FCL states, output from `get_fcl()`
+#' @param fcl Vector of FCL states, output from `get_fcl_state()`
 #'
-#' @details Designed to accept the `get_fcl()` output as an input vector. `fcl` should only be composed of values = `c(0, 1, 2, 2.5, 3)`
+#' @details Designed to accept the `get_fcl_state()` output as an input vector. `fcl` should only be composed of values = `c(0, 1, 2, 2.5, 3)`
 #'
 #' @return vector of length 5, with each element being the proportion of patches in that FCL state.
 #' @export

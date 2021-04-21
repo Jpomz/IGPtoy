@@ -32,11 +32,11 @@ test_that("pop_sim ignore 'P_pref' when 'fixed_P_pref = FALSE",{
 
 test_that("pop_sim fails when fixed_P_pref = TRUE but no value for P_pref supplied", {
   expect_error(pop_sim(N = N,
-          P_pref = NULL, fixed_P_pref = TRUE,
+          P_pref = NA, fixed_P_pref = TRUE,
           alphabc = 4, betabc = 20, ebc = 2,
           alphap = 4, betap = 20, ebp = 2, ecp = 2,
           v_s0 = c(0.75, 0.75, 0.75),
           k = 150, r_max = 2.5, b = 0.01),
-          regexp = "fixed_P_pref == TRUE, but not value for `P_pref` supplied")
+          regexp = "fixed_P_pref == TRUE, but no value for `P_pref` supplied")
 
 })

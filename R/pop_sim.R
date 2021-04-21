@@ -26,7 +26,7 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
   # predation ####
   if(fixed_P_pref == TRUE){
     if(is.null(P_pref)){
-      stop("fixed_P_pref == TRUE, but not value for `P_pref` supplied")
+      stop("fixed_P_pref == TRUE, but no value for `P_pref` supplied")
     }
     P_pref = P_pref
   }
