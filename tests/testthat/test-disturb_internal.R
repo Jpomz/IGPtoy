@@ -31,14 +31,11 @@ out <- disturb_internal(N = N, disturb_type = "point-source",
                  adjacency_matrix = NULL,
                  dist_mat = dist_mat,
                  disturb_mag = 1,
-                 disturb_p = 1, disturb_rho = 1)
+                 disturb_p = 1,
+                 disturb_rho = 1)
 expect_equal(out$N, matrix(0, nrow = 3, ncol = n_patch))
 expect_equal(length(out$patch_extinction), ncol(N))}
 )
-
-
-
-
 
 test_that("regional disturbance reduces N correctly when env_val known",{
   n_patch = 5
@@ -48,12 +45,32 @@ test_that("regional disturbance reduces N correctly when env_val known",{
   environment_value = c(-2, -1, 0, 1, 2)
   # this turns into 0.11, 0.27, 0.5, 0.73, 0.88 on inv.logit
 
-out <- disturb_internal(N = N, environment_value = environment_value,
-                 disturb_type = "regional",
-                 disturb_p = 1, disturb_mag = 1)
+out <- disturb_internal(N = N,
+                        environment_value = environment_value,
+                        disturb_type = "regional",
+                        disturb_p = 1,
+                        disturb_mag = 1,
+                        river_network_structure = TRUE)
 expect_equal(round(colSums(out$N) / colSums(N), 3),
              c(0.881, 0.731, 0.500, 0.269, 0.119))
 expect_equal(length(out$patch_extinction), ncol(N))
 }
 )
 
+test_that("regional disturbance in 2d habitats",{
+  n_patch = 5
+  disturb_mag = runif(1, 0.1, 0.9)
+  N <- matrix(100, # patch 5, confluence
+              ncol = n_patch,
+              nrow = 3)
+
+  out <- disturb_internal(N = N,
+                          disturb_type = "regional",
+                          disturb_p = 1,
+                          disturb_mag = disturb_mag,
+                          river_network_structure = FALSE)
+  expect_equal(out$N,
+               N * (1-disturb_mag))
+  expect_equal(length(out$patch_extinction), ncol(N))
+}
+)

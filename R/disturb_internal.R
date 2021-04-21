@@ -26,70 +26,82 @@ disturb_internal <- function(N,
                              disturb_p,
                              disturb_mag,
                              disturb_rho,
-                             disturb_decay){
+                             disturb_decay,
+                             river_network_structure){
   n_patch <-  ncol(N)
   # no disturbances
   if(is.null(disturb_type)){
     N <- N
     patch_extinction <-  rep(0, n_patch)
-    } else {
-  # point-source disturbance
-  if(disturb_type == "point-source"){
-    if(is.null(adjacency_matrix)){ # move message outside of for loop
-      #message("No adjacency matrix supplied, assuming disturbance in 2D habitat")}
-  # point source in 2D habitats
-  patch_extinction <- rbinom(n = n_patch,
-                             size = 1, prob = disturb_p)
-  patch_disturb_id <- which(patch_extinction==1)
-  if(length(patch_disturb_id) == 0){
-    N <-  N
-  }
-  if(length(patch_disturb_id) != 0){
-    disturb_m <- data.matrix(exp(-disturb_rho * dist_mat))
-    disturb_m <- as.matrix(disturb_m[,patch_disturb_id])
-    N <- N*(1 - rowSums(disturb_m)*disturb_mag)[col(N)]
-  }
-  # point source disturbance in river network
-  if(!is.null(adjacency_matrix)){
-    #message("adj matrix not null")
-    # Disturbance "decay" down stream
-    patch_extinction <- rbinom(n = n_patch,
-                               size = 1,
-                               prob = disturb_p)
-    patch_disturb_id <- which(patch_extinction==1)
+  } else {
+    # point-source disturbance
+    if(disturb_type == "point-source"){
+      if(is.null(adjacency_matrix)){ # move message outside of for loop
+        #message("No adjacency matrix supplied, assuming disturbance in 2D habitat")}
+        # point source in 2D habitats
+        patch_extinction <- rbinom(n = n_patch,
+                                   size = 1, prob = disturb_p)
+        patch_disturb_id <- which(patch_extinction==1)
+        if(length(patch_disturb_id) == 0){
+          N <-  N
+        }
+        if(length(patch_disturb_id) != 0){
+          disturb_m <- data.matrix(exp(-disturb_rho * dist_mat))
+          disturb_m <- as.matrix(disturb_m[,patch_disturb_id])
+          N <- N*(1 - rowSums(disturb_m)*disturb_mag)[col(N)]
+        }
+        # point source disturbance in river network
+        if(!is.null(adjacency_matrix)){
+          #message("adj matrix not null")
+          # Disturbance "decay" down stream
+          patch_extinction <- rbinom(n = n_patch,
+                                     size = 1,
+                                     prob = disturb_p)
+          patch_disturb_id <- which(patch_extinction==1)
 
-    m_adj_up <- adjacency_matrix
-    m_adj_up[lower.tri(m_adj_up)] <- 0
+          m_adj_up <- adjacency_matrix
+          m_adj_up[lower.tri(m_adj_up)] <- 0
 
-    # vector to hold disturbance magnitudes
-    disturb_dummy <- disturb_v <-  rep(0, n_patch)
-    # "source" disturbance magnitude
-    disturb_dummy[patch_disturb_id] <- disturb_mag
+          # vector to hold disturbance magnitudes
+          disturb_dummy <- disturb_v <-  rep(0, n_patch)
+          # "source" disturbance magnitude
+          disturb_dummy[patch_disturb_id] <- disturb_mag
 
-    for(np in n_patch:1){
-      disturb_v <- disturb_v + disturb_dummy
-      disturb_dummy <- m_adj_up %*% (disturb_decay * disturb_dummy)
-    }
+          for(np in n_patch:1){
+            disturb_v <- disturb_v + disturb_dummy
+            disturb_dummy <- m_adj_up %*% (disturb_decay * disturb_dummy)
+          }
 
-    disturb_v[disturb_v >=1] <- 1
-    disturb_v <- as.vector(disturb_v)
+          disturb_v[disturb_v >=1] <- 1
+          disturb_v <- as.vector(disturb_v)
 
-    N <- N*(1 - disturb_v)[col(N)]
-    #message("end of disturb loop")
-  }
-    }
-  }
-    if(disturb_type == "regional"){
-      if(is.null(environment_value)){
-        stop("disturb_type = regional but no `environment_value` supplied")
+          N <- N*(1 - disturb_v)[col(N)]
+        }
       }
-      patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
-      if( patch_extinction == 1){
+    }
+    if(disturb_type == "regional"){
+      if(river_network_structure == FALSE){
+        patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
+
+      if(patch_extinction == 1){
         # scale environment_value to inverse logit scale (0 to 1)
-        env_logit <- exp(environment_value) / (1 + exp(environment_value))
-        disturb_v <- env_logit * disturb_mag
-        N <- N*(1 - disturb_v)[col(N)]
+        N <- N*(1 - disturb_mag)
         patch_extinction <- rep(patch_extinction, n_patch)
+      }
+        }
+      if(river_network_structure == TRUE){
+        if(is.null(environment_value)){
+          stop(
+            "disturb_type = regional but no `environment_value` supplied")
+        }
+        patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
+        if(patch_extinction == 1){
+          # scale environment_value to inverse logit scale (0 to 1)
+          env_logit <- exp(environment_value) / (1 + exp(environment_value))
+          disturb_v <- env_logit * disturb_mag
+          N <- N*(1 - disturb_v)[col(N)]
+          patch_extinction <- rep(patch_extinction, n_patch)
+        }
       }
     }
   }

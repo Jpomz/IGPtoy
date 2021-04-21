@@ -8,7 +8,14 @@
 #' @export
 #'
 #' @examples
-#' dist_mat_internal(dist_mat, landscape_size, n_patch)
+#' n_patch = 5
+#' landscape_size = 10
+#' x_coord = runif(n_patch, 0, landscape_size)
+#' y_coord = runif(n_patch, 0, landscape_size)
+#' dist_mat = data.matrix(dist(cbind(x_coord, y_coord),
+#'                             diag = TRUE, upper = TRUE))
+#'
+#' dist_mat_internal(dist_mat = dist_mat, landscape_size = 10, n_patch = n_patch)
 #'
 dist_mat_internal <- function(dist_mat, landscape_size, n_patch){
   if(!is.null(dist_mat)){

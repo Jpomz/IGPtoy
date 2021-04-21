@@ -22,7 +22,7 @@
 #' @param betabc single numeric value. Parameter controlling the predation of resource B by consumer C
 #' @param alphap single numeric value. Parameter controlling the predation of both resources by consumer P
 #' @param betap single numeric value. Parameter controlling the predation of both resources by consumer P
-#' @param P_pref single numeric value between 0-1 or NULL. Predator preference of B over C. if `NULL` caluclates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.
+#' @param P_pref single numeric value between 0-1 or NULL. Predator preference of B over C. if `NULL` (maybe NA?) calculates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.
 #' @param s0 numeric value length should be either 1 or 3. Base survival probability for all (`length = 1`) or each (`length = 3`) species
 #' @param disturb_type character string, one of: `c("point-source", "regional", or NULL)`. `"point-source"` applies a disturbance event with magnitude = `disturb_mag` to each patch with probability = `disturb_p` for each time step, and the magnitude of the disturbance decays moving downstream according to `disturb_rho` argument. `"regional"` applies a disturbance to the entire network in a given time step with probability = `disturb_p`. The magnitude of the disturbance varies based on the `environment_value`. `NULL` does not apply any disturbance events.
 #' @param disturb_p single numeric value between 0-1. The probability that a disturbance occurs at a given time step.
@@ -206,7 +206,7 @@ igp_sim <- function(n_patch = 20,
   # P_preference ####
   # predator preference fixed or variable
   # NULL or value from 0-1
-  if(is.null(P_pref)){
+  if(is.null(P_pref)){ # is.null(P_pref)
     fixed_P_pref = FALSE
     message("Predator preference varies with resource abundance")
   }
@@ -310,7 +310,8 @@ igp_sim <- function(n_patch = 20,
       disturb_p = disturb_p,
       disturb_mag = disturb_mag,
       disturb_rho = disturb_rho,
-      disturb_decay = disturb_decay)
+      disturb_decay = disturb_decay,
+      river_network_structure = river_network_structure)
 
     N = disturb_result$N
     patch_extinction = disturb_result$patch_extinction
@@ -346,7 +347,7 @@ igp_sim <- function(n_patch = 20,
                          "basal_k",
                          "disturbance", "fcl")
       output[[counter]] <- as.data.frame(out)
-      fcl_list[[counter]] <- fcl_prop(fcl)
+      fcl_list[[counter]] <- fcl_prop(get_fcl_state(N))
       counter = counter + 1
       #print(paste("loop iteration ", i))
     }
@@ -448,6 +449,6 @@ igp_sim <- function(n_patch = 20,
 
   # return ####
   return(list(sp_dynamics = dat,
-              fcl = fcl_df,
+              fcl_state_prop = fcl_df,
               sim_params = param_df))
 }
