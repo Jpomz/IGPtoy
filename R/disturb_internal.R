@@ -84,8 +84,12 @@ disturb_internal <- function(N,
         patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
 
       if(patch_extinction == 1){
-        # scale environment_value to inverse logit scale (0 to 1)
-        N <- N*(1 - disturb_mag)
+        # assign an env
+        r_environment_value <- rnorm(n = n_patch)
+        r_logit_environment_value <- exp(r_environment_value) /
+          (1 + exp(r_environment_value))
+        disturb_v <- r_logit_environment_value * disturb_mag
+        N <- N*(1 - disturb_v)[col(N)]
         patch_extinction <- rep(patch_extinction, n_patch)
       }
         }

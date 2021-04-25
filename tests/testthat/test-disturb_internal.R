@@ -57,9 +57,12 @@ expect_equal(length(out$patch_extinction), ncol(N))
 }
 )
 
-test_that("regional disturbance in 2d habitats",{
-  n_patch = 5
-  disturb_mag = runif(1, 0.1, 0.9)
+test_that("regional disturbance 2d; \n
+          output < input \n
+          variation in output col \n
+          ncol output = ncol input",{
+  n_patch = 10
+  disturb_mag = 0.9
   N <- matrix(100, # patch 5, confluence
               ncol = n_patch,
               nrow = 3)
@@ -69,8 +72,8 @@ test_that("regional disturbance in 2d habitats",{
                           disturb_p = 1,
                           disturb_mag = disturb_mag,
                           river_network_structure = FALSE)
-  expect_equal(out$N,
-               N * (1-disturb_mag))
+  expect_lte(sum(out$N), sum(N))
+  expect_false(all(colSums(out$N)==colSums(out$N)[1]))
   expect_equal(length(out$patch_extinction), ncol(N))
 }
 )
