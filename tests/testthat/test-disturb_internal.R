@@ -43,7 +43,14 @@ test_that("regional disturbance reduces N correctly when env_val known",{
               ncol = n_patch,
               nrow = 3)
   environment_value = c(-2, -1, 0, 1, 2)
-  # this turns into 0.11, 0.27, 0.5, 0.73, 0.88 on inv.logit
+
+  # inverse logit scale
+  env_logit <- exp(environment_value) / (1 + exp(environment_value))
+
+  # rescale from 0.75 to 1
+  env_scale <- (env_logit - min(env_logit)) /
+    (max(env_logit) - min(env_logit)) * (0.75 - 1) + 1
+
 
 out <- disturb_internal(N = N,
                         environment_value = environment_value,
@@ -51,29 +58,30 @@ out <- disturb_internal(N = N,
                         disturb_p = 1,
                         disturb_mag = 1,
                         river_network_structure = TRUE)
+# output is reduced by proper percentages (1 - env_scale)
 expect_equal(round(colSums(out$N) / colSums(N), 3),
-             c(0.881, 0.731, 0.500, 0.269, 0.119))
+             round(1 - env_scale, 3))
 expect_equal(length(out$patch_extinction), ncol(N))
 }
 )
 
-test_that("regional disturbance 2d; \n
-          output < input \n
-          variation in output col \n
-          ncol output = ncol input",{
+test_that("regional disturbance 2d; \n output < input \nvariation in output col \nncol output = ncol input", {
+
   n_patch = 10
   disturb_mag = 0.9
   N <- matrix(100, # patch 5, confluence
               ncol = n_patch,
               nrow = 3)
+  environment_value <- rnorm(n_patch, mean = 0, sd = 1)
 
   out <- disturb_internal(N = N,
                           disturb_type = "regional",
                           disturb_p = 1,
                           disturb_mag = disturb_mag,
-                          river_network_structure = FALSE)
+                          river_network_structure = FALSE,
+                          environment_value = environment_value)
   expect_lte(sum(out$N), sum(N))
   expect_false(all(colSums(out$N)==colSums(out$N)[1]))
   expect_equal(length(out$patch_extinction), ncol(N))
-}
+          }
 )

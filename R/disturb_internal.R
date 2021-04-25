@@ -84,12 +84,29 @@ disturb_internal <- function(N,
         patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
 
       if(patch_extinction == 1){
-        # assign an env
-        r_environment_value <- rnorm(n = n_patch)
-        r_logit_environment_value <- exp(r_environment_value) /
-          (1 + exp(r_environment_value))
-        disturb_v <- r_logit_environment_value * disturb_mag
+
+        # assign a random "environment" value
+        # v_renv <- rnorm(n = n_patch)
+
+        # transform environment from 0-1 using inverse logit function
+        v_logit_env <- exp(environment_value) /
+          (1 + exp(environment_value))
+
+        # rescale transformed variable from 0.75 to 1
+        ## this keeps some patches experiencing max magnitude
+          ## disturbance
+        ## if v_logit_env is used, most patches experience
+          ## disturbance magnitude that is very reduced
+        scale_env <- (v_logit_env - min(v_logit_env)) /
+          (max(v_logit_env) - min(v_logit_env)) * (0.75 - 1) + 1
+
+        # vector of disturbance values for each patch
+        # incorporating spatial variation
+        disturb_v <- scale_env * disturb_mag
+
+        # Number of individuals after disturbance
         N <- N*(1 - disturb_v)[col(N)]
+
         patch_extinction <- rep(patch_extinction, n_patch)
       }
         }
@@ -100,10 +117,26 @@ disturb_internal <- function(N,
         }
         patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
         if(patch_extinction == 1){
+
           # scale environment_value to inverse logit scale (0 to 1)
-          env_logit <- exp(environment_value) / (1 + exp(environment_value))
-          disturb_v <- env_logit * disturb_mag
+          env_logit <- exp(environment_value) /
+            (1 + exp(environment_value))
+
+          # rescale transformed variable from 0.75 to 1
+          ## this keeps some patches experiencing max magnitude
+          ## disturbance
+          ## if v_logit_env is used, most patches experience
+          ## disturbance magnitude that is very reduced
+          scale_env <- (env_logit - min(env_logit)) /
+            (max(env_logit) - min(env_logit)) * (0.75 - 1) + 1
+
+          # vector of disturbance values for each patch
+          # incorporating spatial variation
+          disturb_v <- scale_env * disturb_mag
+
+          # Number of individuals after disturbance
           N <- N*(1 - disturb_v)[col(N)]
+
           patch_extinction <- rep(patch_extinction, n_patch)
         }
       }

@@ -117,6 +117,9 @@ igp_sim <- function(n_patch = 20,
                     n_patch = n_patch)
   dist_mat = dist_structure$dist_mat
   river_network_structure = dist_structure$river_network_structure
+  if(river_network_structure == FALSE){
+    environment_value <- rnorm(n_patch, mean = 0, sd = 1)
+  }
 
   if(length(theta) == 1){
     v_theta = rep(theta, 3)
