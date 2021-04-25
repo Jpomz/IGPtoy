@@ -84,10 +84,6 @@ disturb_internal <- function(N,
         patch_extinction <- rbinom(n = 1, size = 1, prob = disturb_p)
 
       if(patch_extinction == 1){
-
-        # assign a random "environment" value
-        # v_renv <- rnorm(n = n_patch)
-
         # transform environment from 0-1 using inverse logit function
         v_logit_env <- exp(environment_value) /
           (1 + exp(environment_value))
