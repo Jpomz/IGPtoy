@@ -41,6 +41,7 @@
 #' @importFrom dplyr %>% bind_rows filter pull select
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw
+#' @importFrom boot logit inv.logit
 #'
 #' @export
 #'
@@ -74,8 +75,10 @@ igp_sim <- function(n_patch = 20,
                     P_pref = 0.25, # preference of B over C
                     s0 = 0.75,
                     disturb_type = NULL, #c(NULL, "point-source", "regional")
+                    disturb_value = NULL,
                     disturb_p = 1e-4,
-                    disturb_mag = 0.5,
+                    disturb_mag_mean = 0.9,
+                    disturb_mag_sd = 0.1,
                     disturb_rho = 1, # 2D habitats
                     disturb_decay = 0.75, # downstream
                     n_burnin = 200,
@@ -100,7 +103,8 @@ igp_sim <- function(n_patch = 20,
     p_dispersal = p_dispersal, theta = theta,
     s0 = s0,
     disturb_type = ifelse(is.null(disturb_type), NA, disturb_type),
-    disturb_p = disturb_p, disturb_mag = disturb_mag,
+    disturb_p = disturb_p, disturb_mag_mean = disturb_mag_mean,
+    disturb_mag_sd = disturb_mag_sd,
     disturb_rho = disturb_rho, disturb_decay = disturb_decay)
   if(nrow(param_df) == 1){
     row.names(param_df) <- "all_sp"
@@ -119,6 +123,9 @@ igp_sim <- function(n_patch = 20,
   river_network_structure = dist_structure$river_network_structure
   if(river_network_structure == FALSE){
     environment_value <- rnorm(n_patch, mean = 0, sd = 1)
+    disturb_value <- boot::inv.logit(rnorm(n_patch,
+                           mean = boot::logit(disturb_mag_mean),
+                           sd = disturb_mag_sd))
   }
 
   if(length(theta) == 1){
@@ -308,10 +315,11 @@ igp_sim <- function(n_patch = 20,
       N = N,
       adjacency_matrix = adjacency_matrix,
       dist_mat = dist_mat,
-      environment_value = environment_value,
+      disturb_value = disturb_value,
+      #environment_value = environment_value,
       disturb_type = disturb_type,
       disturb_p = disturb_p,
-      disturb_mag = disturb_mag,
+      #disturb_mag = disturb_mag,
       disturb_rho = disturb_rho,
       disturb_decay = disturb_decay,
       river_network_structure = river_network_structure)
@@ -348,7 +356,8 @@ igp_sim <- function(n_patch = 20,
                          "P",
                          "time",
                          "basal_k",
-                         "disturbance", "fcl")
+                         "disturbance",
+                         "fcl")
       output[[counter]] <- as.data.frame(out)
       fcl_list[[counter]] <- fcl_prop(get_fcl_state(N))
       counter = counter + 1
@@ -452,6 +461,10 @@ igp_sim <- function(n_patch = 20,
 
   # return ####
   return(list(sp_dynamics = dat,
+              df_patch = dplyr::tibble(patch_id = seq_len(n_patch),
+                                       disturb_value = c(disturb_value),
+                                       basal_k = c(k),
+                                       dens_dep_reg = c(b)),
               fcl_state_prop = fcl_df,
               sim_params = param_df))
 }

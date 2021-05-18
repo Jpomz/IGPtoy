@@ -34,6 +34,7 @@ k_function_internal <- function(k_function, k_base, r_max,
       if(k_function == "patches-upstream"){
         if(river_network_structure == FALSE){
           message("***CAUTION*** \nk_function = `patches upstream` but distance matrix for river network not supplied;\nrelationship between k ~ patches uncertain")
+          n_upstream = rexp(n_patch) *n_patch / 6
         }
         if(is.null(n_upstream))
           stop("number of patches upstream must be supplied to n_upstream argument")

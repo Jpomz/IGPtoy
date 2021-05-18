@@ -26,14 +26,18 @@ dist_mat <- matrix(
   dimnames = list(
     c("patch1", "patch2", "patch3", "patch4", "patch5"),
     c("patch1", "patch2", "patch3", "patch4", "patch5")))
+disturb_value <- boot::inv.logit(rnorm(n = n_patch,
+                                       mean = boot::logit(0.999),
+                                       sd = 0.0001))
 
-out <- disturb_internal(N = N, disturb_type = "point-source",
+out <- disturb_internal(N = N, disturb_type = "regional",
                  adjacency_matrix = NULL,
                  dist_mat = dist_mat,
-                 disturb_mag = 1,
+                 disturb_value = disturb_value,
                  disturb_p = 1,
-                 disturb_rho = 1)
-expect_equal(out$N, matrix(0, nrow = 3, ncol = n_patch))
+                 disturb_rho = 1,
+                 river_network_structure = FALSE)
+expect_true(all(out$N>matrix(0, nrow = 3, ncol = n_patch)))
 expect_equal(length(out$patch_extinction), ncol(N))}
 )
 
@@ -42,25 +46,16 @@ test_that("regional disturbance reduces N correctly when env_val known",{
   N <- matrix(100, # patch 5, confluence
               ncol = n_patch,
               nrow = 3)
-  environment_value = c(-2, -1, 0, 1, 2)
-
-  # inverse logit scale
-  env_logit <- exp(environment_value) / (1 + exp(environment_value))
-
-  # rescale from 0.75 to 1
-  env_scale <- (env_logit - min(env_logit)) /
-    (max(env_logit) - min(env_logit)) * (0.75 - 1) + 1
-
+  disturb_value = boot::inv.logit(c(-2, -1, 0, 1, 2))
 
 out <- disturb_internal(N = N,
-                        environment_value = environment_value,
+                        disturb_value = disturb_value,
                         disturb_type = "regional",
                         disturb_p = 1,
-                        disturb_mag = 1,
                         river_network_structure = TRUE)
 # output is reduced by proper percentages (1 - env_scale)
 expect_equal(round(colSums(out$N) / colSums(N), 3),
-             round(1 - env_scale, 3))
+             round(1 - disturb_value, 3))
 expect_equal(length(out$patch_extinction), ncol(N))
 }
 )
@@ -68,18 +63,18 @@ expect_equal(length(out$patch_extinction), ncol(N))
 test_that("regional disturbance 2d; \n output < input \nvariation in output col \nncol output = ncol input", {
 
   n_patch = 10
-  disturb_mag = 0.9
-  N <- matrix(100, # patch 5, confluence
+  N <- matrix(100,
               ncol = n_patch,
               nrow = 3)
-  environment_value <- rnorm(n_patch, mean = 0, sd = 1)
+  disturb_value <- boot::inv.logit(rnorm(n_patch,
+                         mean = boot::logit(0.99),
+                         sd = 0.1))
 
   out <- disturb_internal(N = N,
                           disturb_type = "regional",
                           disturb_p = 1,
-                          disturb_mag = disturb_mag,
                           river_network_structure = FALSE,
-                          environment_value = environment_value)
+                          disturb_value = disturb_value)
   expect_lte(sum(out$N), sum(N))
   expect_false(all(colSums(out$N)==colSums(out$N)[1]))
   expect_equal(length(out$patch_extinction), ncol(N))
