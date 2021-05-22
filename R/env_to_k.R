@@ -3,16 +3,16 @@
 #' @param env Vector of environmental values.
 #' @param k_base Mean carrying capacity K.
 #'
-#' @details This function re-scales a vector of environmental values for patches to carrying capacities. the minimum carrying capacity = `0.5 * k_base` and the maximum carrying capacity = `1.5 * k_base`.
+#' @details This function adds variation to the carrying capacity based on the environment value. When the variation in the `env` variable is high, the carrying capacity varies between 0.5 and 1.5 * `k_base`. When variation in `env` is very low, the observed k is approximately = `k_base`.
 #'
-#'  This function is designed to take `brnet()$df_patch$environment` as the `env` argument. See the `brnet()` function to control the headwater heterogeneity and spatial auto-correlation of environmental values between patches.
+#'  This function is designed to take the `df_patch$environment` output from the `mcbrnet::brnet()`  as the `env` argument. See the `brnet()` function to control the variation of `environment` in head waters as well as longitudinal variation of environmental values between patches.
 #'
 #' @return Vector of carrying capacities
 #'
 #' @export
 #'
 #' @examples
-#' env_to_k(env = c(0.5, 1, 1.5), k_base = 100)
+#' env_to_k(env = rnorm(10), k_base = 100)
 #'
 env_to_k <- function(env, k_base){
   if(any(is.na(c(env, k_base)))){
@@ -22,9 +22,10 @@ env_to_k <- function(env, k_base){
     k = k_base
     k
   } else{
-  k_min = 0.5 * k_base
-  k_max = 1.5 * k_base
-  k = round(((env - min(env))/ (max(env) - min(env))) *
-            (k_max - k_min) + k_min)
+    # transform env to inverse logit scale
+    # add 0.5 to put values between [0.5, 1.5]
+  env_scale = (exp(env)/(1+exp(env))) + 0.5
+  k = round(env_scale * k_base)
+  # return vector of observed k values per patch
   k}
 }
