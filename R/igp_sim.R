@@ -29,7 +29,8 @@
 #' @param disturb_mag single numeric value between 0-1. This controls the initial magnitude of impact given a disturbance occurs. For example, if a disturbance does occur, a value of 0.1, or 0.75 results in population abundances for each species being reduced by 10 or 75%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.
 #' @param disturb_rho Single numeric value >= 0. controls how quickly disturbance diminish with distance: 0 = no decay, all patches experience equal impact; 10 impact rapidly decays, with adjacent patches hardly being affected.
 #' @param disturb_decay Single numeric value from 0 to 1. Indicates what percent of the disturbance remains at the next patch (i.e. 0.1, 0.5, 0.75, 1 = 10, 50, 75 and 100% of disturbance impacts in adjacent patch, respectively.
-#' @param t Single numeric value. The number of time-steps to be saved.
+#' @param n_burnin Single numeric value. The number of time-steps to occur before recording values. default = 200,
+#' @param n_timestep Single numeric value. The number of time-steps to be saved. default =  1000
 #' @param plot_disturbance logical. If `TRUE` plots all patches that underwent a disturbance event.
 #' @param plot_fcl logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps.
 #' @param plot_patch_dynamics logical. If `TRUE` plots population abundances through time for 5 random patches.
