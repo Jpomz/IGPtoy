@@ -356,7 +356,7 @@ igp_sim <- function(n_patch = 20,
                          "C",
                          "P",
                          "time",
-                         "basal_k",
+                         "obs_basal_k",
                          "disturbance",
                          "fcl")
       output[[counter]] <- as.data.frame(out)
