@@ -18,11 +18,11 @@ Vector of carrying capacities
 Calculate K based on environmental value
 }
 \details{
-This function re-scales a vector of environmental values for patches to carrying capacities. the minimum carrying capacity = \code{0.5 * k_base} and the maximum carrying capacity = \code{1.5 * k_base}.
+This function adds variation to the carrying capacity based on the environment value. When the variation in the \code{env} variable is high, the carrying capacity varies between 0.5 and 1.5 * \code{k_base}, with most of the density being concentrated at the extremes. When variation in \code{env} is very low, the observed k is approximately = \code{k_base}.
 
-This function is designed to take \code{brnet()$df_patch$environment} as the \code{env} argument. See the \code{brnet()} function to control the headwater heterogeneity and spatial auto-correlation of environmental values between patches.
+This function is designed to take the \code{df_patch$environment} output from the \code{mcbrnet::brnet()}  as the \code{env} argument. See the \code{brnet()} function to control the variation of \code{environment} in head waters as well as longitudinal variation of environmental values between patches.
 }
 \examples{
-env_to_k(env = c(0.5, 1, 1.5), k_base = 100)
+env_to_k(env = rnorm(10), k_base = 100)
 
 }

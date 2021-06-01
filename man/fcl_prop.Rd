@@ -7,7 +7,7 @@
 fcl_prop(fcl)
 }
 \arguments{
-\item{fcl}{Vector of FCL states, output from \code{get_fcl()}}
+\item{fcl}{Vector of FCL states, output from \code{get_fcl_state()}}
 }
 \value{
 vector of length 5, with each element being the proportion of patches in that FCL state.
@@ -16,7 +16,7 @@ vector of length 5, with each element being the proportion of patches in that FC
 Title
 }
 \details{
-Designed to accept the \code{get_fcl()} output as an input vector. \code{fcl} should only be composed of values = \code{c(0, 1, 2, 2.5, 3)}
+Designed to accept the \code{get_fcl_state()} output as an input vector. \code{fcl} should only be composed of values = \code{c(0, 1, 2, 2.5, 3)}
 }
 \examples{
 # simulate abundance matrix

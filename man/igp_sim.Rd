@@ -30,14 +30,17 @@ igp_sim(
   P_pref = 0.25,
   s0 = 0.75,
   disturb_type = NULL,
+  disturb_value = NULL,
   disturb_p = 1e-04,
-  disturb_mag = 0.5,
+  disturb_mag_mean = 0.9,
+  disturb_mag_sd = 0.1,
   disturb_rho = 1,
   disturb_decay = 0.75,
-  t = 1000,
-  plot_disturbance = TRUE,
-  plot_fcl = TRUE,
-  plot_patch_dynamics = TRUE
+  n_burnin = 200,
+  n_timestep = 1000,
+  plot_disturbance = FALSE,
+  plot_fcl = FALSE,
+  plot_patch_dynamics = FALSE
 )
 }
 \arguments{
@@ -51,19 +54,19 @@ igp_sim(
 
 \item{adjacency_matrix}{square matrix describing which patches are adjacent to one another.}
 
-\item{k_function}{character string, one of: \code{c("patches upstream", "random", "environment", NULL)}. \code{"patches upstream"} calculates carrying capacity based on the number of nodes upstream. \code{"random"} assigns an integer value to each patch from a Poisson distribution with \code{lambda = k_base}. \code{"environment"} calculates K based on \code{df_patch$environment} value returned from \code{brnet()} function. \code{NULL} assumes that \code{k = k_base} in all patches.}
+\item{k_function}{character string, one of: \code{c("patches-upstream", "random", "environment", NULL)}. \code{"patches-upstream"} calculates carrying capacity based on the number of nodes upstream. \code{"random"} assigns an integer value to each patch from a Poisson distribution with \code{lambda = k_base}. \code{"environment"} calculates K based on \code{df_patch$environment} value returned from \code{brnet()} function. \code{NULL} assumes that \code{k = k_base} in all patches.}
 
-\item{n_upstream}{numeric vector of \code{length = n_patch}. used if \code{k_function = "patches_upstream"}}
+\item{n_upstream}{numeric vector of \code{length = n_patch}. used if \code{k_function = "patches-upstream"}}
 
 \item{environment_value}{numeric vector of \code{length = n_patch}. used if \code{k_function = "environment"}}
 
 \item{k_base}{single numeric value. Used to calculate carrying capacity, K. see ?k_function_internal for more.}
 
-\item{k_c}{single numeric value. Constant used to calculate K when \verb{k_function = "patches_upstream}. Default = 10}
+\item{k_c}{single numeric value. Constant used to calculate K when \code{k_function = "patches-upstream"}. Default = 10}
 
-\item{k_min_exponent}{single numeric value. Minimum value of a uniform distribution for the exponent used to calculate K when \verb{k_function = "patches_upstream}}
+\item{k_min_exponent}{single numeric value. Minimum value of a uniform distribution for the exponent used to calculate K when \code{k_function = "patches_upstream"}}
 
-\item{k_max_exponent}{single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when \verb{k_function = "patches_upstream}}
+\item{k_max_exponent}{single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when \code{k_function = "patches_upstream"}}
 
 \item{p_dispersal}{numeric value (length should be one or 3). Probability of dispersal.}
 
@@ -85,7 +88,7 @@ igp_sim(
 
 \item{betap}{single numeric value. Parameter controlling the predation of both resources by consumer P}
 
-\item{P_pref}{single numeric value between 0-1 or NULL. Predator preference of B over C. if \code{NULL} caluclates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.}
+\item{P_pref}{single numeric value between 0-1 or NULL. Predator preference of B over C. if \code{NULL} (maybe NA?) calculates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.}
 
 \item{s0}{numeric value length should be either 1 or 3. Base survival probability for all (\code{length = 1}) or each (\code{length = 3}) species}
 
@@ -93,19 +96,21 @@ igp_sim(
 
 \item{disturb_p}{single numeric value between 0-1. The probability that a disturbance occurs at a given time step.}
 
-\item{disturb_mag}{single numeric value between 0-1. This controls the initial magnitude of impact given a disturbance occurs. For example, if a disturbance does occur, a value of 0.1, or 0.75 results in population abundances for each species being reduced by 10 or 75\%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.}
-
 \item{disturb_rho}{Single numeric value >= 0. controls how quickly disturbance diminish with distance: 0 = no decay, all patches experience equal impact; 10 impact rapidly decays, with adjacent patches hardly being affected.}
 
 \item{disturb_decay}{Single numeric value from 0 to 1. Indicates what percent of the disturbance remains at the next patch (i.e. 0.1, 0.5, 0.75, 1 = 10, 50, 75 and 100\% of disturbance impacts in adjacent patch, respectively.}
 
-\item{t}{Single numeric value. The number of time-steps to be saved.}
+\item{n_burnin}{Single numeric value. The number of time-steps to occur before recording values. default = 200,}
+
+\item{n_timestep}{Single numeric value. The number of time-steps to be saved. default =  1000}
 
 \item{plot_disturbance}{logical. If \code{TRUE} plots all patches that underwent a disturbance event.}
 
 \item{plot_fcl}{logical. If \code{TRUE} plots the proportion of patches with a given food chain length through all time-steps.}
 
 \item{plot_patch_dynamics}{logical. If \code{TRUE} plots population abundances through time for 5 random patches.}
+
+\item{disturb_mag}{single numeric value between 0-1. This controls the initial magnitude of impact given a disturbance occurs. For example, if a disturbance does occur, a value of 0.1, or 0.75 results in population abundances for each species being reduced by 10 or 75\%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.}
 }
 \value{
 \code{sp_dynamics} a data frame containing simulated IGP community dynamics.
