@@ -115,6 +115,7 @@ igp_sim <- function(n_patch = 20,
   }
 
   n_sp = 3
+  k_input = k_base
 
   ## distance matrix ####
   dist_structure <- dist_mat_internal(dist_mat = dist_mat,
@@ -229,7 +230,7 @@ igp_sim <- function(n_patch = 20,
   ## initial community ####
   if(is.null(n_0)){
     N <- matrix(rpois(n = n_sp * n_patch,
-                      lambda = c(k*0.8, k*0.5, k*0.25)),
+                      lambda = c(k_input*0.8, k_input*0.5, k_input*0.25)),
                 nrow = n_sp,
                 ncol = n_patch)
     message(
