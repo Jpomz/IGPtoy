@@ -69,8 +69,8 @@ k_function_internal <- function(k_function, k_base, r_max,
           stop("length of `environment_value` should equal n_patch")
         k = env_to_k(env = environment_value, k_base = k_base)
         b = calc_b(r_max = r_max, k = k)
-        return(list( k=k, b = b))
         message("environmental value scaled from 50% to 150% of k_base")
+        return(list( k=k, b = b))
       }
     }
 }
