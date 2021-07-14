@@ -28,7 +28,7 @@
 #' @param s0 numeric value length should be either 1 or 3. Base survival probability for all (`length = 1`) or each (`length = 3`) species
 #' @param disturb_type character string, one of: `c("regional", or NULL)`.
 #'  `NULL` does not apply any disturbance events throughout the simulation.
-#' `"regional"` applies a disturbance to the entire network in a given time step with probability = `disturb_p`. The magnitude of the disturbance varies based on the `disturbance_value`.
+#' `"regional"` applies a disturbance to the entire network in a given time step with probability = `disturb_p`. The magnitude of the disturbance varies based on the `disturb_value`.
 #' Future releases are intended to include a `point-source` argument, where disturbances occur randomly in a patch, and the magnitude decays downstream. This is not currently implemented.
 #' @param disturb_value Numeric vector of length = `n_patch`.
 #' This is optimized to work with branching river networks generated from the the `mcbrnet` package by taking the output of `df_patch$disturbance` from `brnet()` as an input. See `?brnet` for more details.
@@ -107,8 +107,7 @@ igp_sim <- function(n_patch = 20,
     s0 = s0,
     disturb_type = ifelse(is.null(disturb_type), NA, disturb_type),
     disturb_p = disturb_p, disturb_mag_mean = disturb_mag_mean,
-    disturb_mag_sd = disturb_mag_sd,
-    disturb_rho = disturb_rho, disturb_decay = disturb_decay)
+    disturb_mag_sd = disturb_mag_sd)
   if(nrow(param_df) == 1){
     row.names(param_df) <- "all_sp"
   }
@@ -126,11 +125,11 @@ igp_sim <- function(n_patch = 20,
   dist_mat = dist_structure$dist_mat
   river_network_structure = dist_structure$river_network_structure
 
-  if(river_network_structure == TRUE & is.null(disturbance_value)){
+  if(river_network_structure == TRUE & is.null(disturb_value)){
     stop("Disturbance value from 'mcbrnet' is needed for branching habitats")
   }
 
-  if(river_network_structure == FALSE & !is.null(disturbance_value)){
+  if(river_network_structure == FALSE & !is.null(disturb_value)){
     warning("Disturbance value is provided for 2D habitat, disturbance values overwritten with random sample")
   }
 
@@ -327,15 +326,9 @@ igp_sim <- function(n_patch = 20,
     # disturbance ####
     disturb_result = disturb_internal(
       N = N,
-      adjacency_matrix = adjacency_matrix,
-      dist_mat = dist_mat,
       disturb_value = disturb_value,
-      #environment_value = environment_value,
       disturb_type = disturb_type,
       disturb_p = disturb_p,
-      #disturb_mag = disturb_mag,
-      disturb_rho = disturb_rho,
-      disturb_decay = disturb_decay,
       river_network_structure = river_network_structure)
 
     N = disturb_result$N
