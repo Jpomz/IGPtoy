@@ -30,14 +30,12 @@ disturb_value <- boot::inv.logit(rnorm(n = n_patch,
                                        mean = boot::logit(0.999),
                                        sd = 0.0001))
 
-out <- disturb_internal(N = N, disturb_type = "regional",
-                 adjacency_matrix = NULL,
-                 dist_mat = dist_mat,
-                 disturb_value = disturb_value,
-                 disturb_p = 1,
-                 disturb_rho = 1,
-                 river_network_structure = FALSE)
-expect_true(all(out$N>matrix(0, nrow = 3, ncol = n_patch)))
+out <- disturb_internal(N = N,
+                        disturb_type = "regional",
+                        disturb_value = disturb_value,
+                        disturb_p = 1,
+                        river_network_structure = FALSE)
+expect_true(all(out$N > matrix(0, nrow = 3, ncol = n_patch)))
 expect_equal(length(out$patch_extinction), ncol(N))}
 )
 
