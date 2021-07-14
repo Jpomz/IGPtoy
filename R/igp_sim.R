@@ -350,13 +350,17 @@ igp_sim <- function(n_patch = 20,
       # food chain length state
       fcl = get_fcl(N = N)
 
+      # observed predator preference
+      obs_P_pref = prey_preference(e1 = ebp, e2 = ecp, N1 = N[1,], N2 = N[2,])
+
       # path_dynamics output
       out = cbind(1:n_patch,
                   t(N),
                   counter,
                   k,
                   patch_extinction,
-                  fcl)
+                  fcl,
+                  obs_P_pref)
       colnames(out) <- c("patch",
                          "B",
                          "C",
@@ -364,7 +368,8 @@ igp_sim <- function(n_patch = 20,
                          "time",
                          "basal_k",
                          "disturbance",
-                         "fcl")
+                         "fcl",
+                         "obs_P_pref")
       output[[counter]] <- as.data.frame(out)
       fcl_list[[counter]] <- fcl_prop(get_fcl_state(N))
       counter = counter + 1
@@ -390,7 +395,7 @@ igp_sim <- function(n_patch = 20,
       facet_wrap(.~fcl_state) +
       theme_bw() +
       labs(y = "proportion of patches",
-           title = "Food chain length") +
+           title = "Food chain length State") +
       NULL
     print(fcl_plot)
   }
