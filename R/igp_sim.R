@@ -404,7 +404,7 @@ igp_sim <- function(n_patch = 20,
   # plot of patch dynamics
   if(plot_patch_dynamics == TRUE){
 
-    plot_dat <- dat %>% filter(patch %in% sample(1:n_patch, 5))
+    plot_dat <- dat %>% filter(patch %in% sample(1:n_patch, 6))
     dist_dat <- dplyr::filter(plot_dat, disturbance == 1)
 
     if(nrow(dist_dat) >0){
@@ -421,7 +421,7 @@ igp_sim <- function(n_patch = 20,
                    size = 2) +
         facet_wrap(.~patch, labeller = label_both) +
         labs(y = "Abundance",
-             title = "Dynamics for 5 random patches") +
+             title = "Dynamics for 6 random patches") +
         theme_bw() +
         NULL
       print(patch_plot)
@@ -433,7 +433,7 @@ igp_sim <- function(n_patch = 20,
         geom_line() +
         facet_wrap(.~patch, labeller = label_both) +
         labs(y = "Abundance",
-             title = "Dynamics for 5 random patches") +
+             title = "Dynamics for 6 random patches") +
         theme_bw() +
         NULL
       print(patch_plot)
