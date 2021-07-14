@@ -57,27 +57,6 @@ test_that("k_function_internal 'patches upstream' returns list and length = n_pa
   expect_length(out$k, n_patch)
 })
 
-test_that("k_function_internal 'random' returns list length n_patch, =-10% of k_base value", {
-  n_patch = 100
-  k_base = 150
-  k_base_margin = c(k_base * 0.9, k_base * 1.1)
-  out <- suppressMessages(
-    k_function_internal(k_function = "random",
-                        k_base = k_base,
-                        r_max = 2.5,
-                        #n_upstream = sample(1:20, 20),
-                        n_patch = n_patch,
-                        #k_c = 10,
-                        #k_min_exponent = 1.1,
-                        #k_max_exponent = 1.35,
-                        #river_network_structure = TRUE,
-                        environment_value = NULL))
-  expect_type(out, "list")
-  expect_named(out, c("k", "b"))
-  expect_length(out$k, n_patch)
-  expect_gte(mean(out$k), min(k_base_margin))
-  expect_lte(mean(out$k), max(k_base_margin))
-  })
 
 test_that("k_function_internal 'environment' returns list length n_patch", {
   n_patch = 20
