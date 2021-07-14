@@ -1,38 +1,44 @@
 #' Simulate IGP dynamics in 3 species communities through space and time
 #'
 #' @param n_patch single numeric value. Total number of patches in simulation
-#' @param n_0 numeric value length should be either 1 or 3. starting abundances for species in each patch. If only one value is supplied it is assumed to be the same for all three species. Can designate starting values for each species with a vector of length 3. If NULL starting abundances for B, C, and P are 0.8, 0.5, and 0.25 * k_base, respectively.
-#' @param dist_mat square distance matrix describing distance of all patches. If it is NULL, assumes a square landscape with `length = landscape_size`
-#' @param landscape_size single numeric value. Length of a landscape on a side.
-#' @param adjacency_matrix square matrix describing which patches are adjacent to one another.
-#' @param k_function character string, one of: `c("patches-upstream", "random", "environment", NULL)`. `"patches-upstream"` calculates carrying capacity based on the number of nodes upstream. `"random"` assigns an integer value to each patch from a Poisson distribution with `lambda = k_base`. `"environment"` calculates K based on `df_patch$environment` value returned from `brnet()` function. `NULL` assumes that `k = k_base` in all patches.
-#' @param n_upstream numeric vector of `length = n_patch`. used if `k_function = "patches-upstream"`
-#' @param environment_value numeric vector of `length = n_patch`. used if `k_function = "environment"`
-#' @param k_base single numeric value. Used to calculate carrying capacity, K. see ?k_function_internal for more.
+#' @param n_0 `NULL` or numeric vector length either 1 or 3. Starting abundances for species in each patch. If only one value is supplied it is assumed to be the same for all three species. Can designate starting values for each species with a vector of length 3. If `NULL` starting abundances for B, C, and P are 0.8, 0.5, and 0.25 * `k_base`, respectively.
+#' @param dist_mat square distance matrix describing distance of all patches. If it is `NULL` simulates a square landscape with `length = landscape_size`, with `n_patch` randomly distributed.
+#' @param landscape_size single numeric value. Length of a square landscape on a side.
+#' @param adjacency_matrix square matrix describing which patches are adjacent to one another. For branching river networks, use `net$adjacency_matrix` from `mcbrnet::brnet()` as the input argument.
+#' @param k_function character string, one of: `c("patches-upstream", "environment", NULL)`. `"patches-upstream"` calculates carrying capacity based on the number of nodes upstream. See `?k_n_upstream` for details.
+#' `"environment"` calculates K based on `df_patch$environment` value returned from `brnet()` function. `NULL` assumes that `k = k_base` in all patches.
+#' @param n_upstream numeric vector of `length = n_patch`. Used if `k_function = "patches-upstream"`. Use `df_patch$n_patch_upstream` from `mcbrnet::brnet()`.
+#' @param environment_value numeric vector of `length = n_patch`. used if `k_function = "environment"`. Use `df_patch$environment` from `mcbrnet::brnet()`.
+#' @param k_base single numeric value. Used to calculate carrying capacity, K. see `?k_function_internal` for more.
 #' @param k_c single numeric value. Constant used to calculate K when `k_function = "patches-upstream"`. Default = 10
 #' @param k_min_exponent single numeric value. Minimum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream"`
 #' @param k_max_exponent single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when `k_function = "patches_upstream"`
-#' @param p_dispersal numeric value (length should be one or 3). Probability of dispersal.
+#' @param p_dispersal numeric value describing the probability of dispersal. For example, a value of 0.1 means that 10% of the population abundance emmigrates from each patch in each time step. If length = 1, assumed to be same for all three species. To set probability independently for species, B, C, and P, use a vector of length = 3.
 #' @param theta numeric value of length 1 or 3. Dispersal parameter describing dispersal capability of species. If length(theta) = 1 it is the same for all three species. Can be set for each species with vector of length = 3.
 #' @param r_max single numeric value. Maximum reproductive number for the basal species, B, of the Beverton-Holt model.
-#' @param ebc single Numeric value. Conversion efficiency of turning B biomass into new C biomass
+#' @param ebc single Numeric value. Conversion efficiency of turning B biomass into new C biomass.
 #' @param ebp single Numeric value. Conversion efficiency of turning B biomass into new P biomass
 #' @param ecp single Numeric value. Conversion efficiency of turning C biomass into new P biomass
 #' @param alphabc single numeric value. Parameter controlling the predation of resource B by consumer C
 #' @param betabc single numeric value. Parameter controlling the predation of resource B by consumer C
 #' @param alphap single numeric value. Parameter controlling the predation of both resources by consumer P
 #' @param betap single numeric value. Parameter controlling the predation of both resources by consumer P
-#' @param P_pref single numeric value between 0-1 or NULL. Predator preference of B over C. if `NULL` (maybe NA?) calculates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.
+#' @param P_pref single numeric value between 0-1 or NULL. Predator preference of B over C. If `P_pref = NULL`, default, calculates predator preference independently for each patch and time step, using the `prey_preference()` function. Preference is a function of conversion efficiency rates `(ebp, ecp)` and observed prey abundances of both prey species in each patch and time step. i.e., Holling's "type 3" response.
+#' If value is supplied to `P_pref`, it is fixed in all patches and all time steps. i.e., `P_pref = 0.25` means that the predator will always allocate 25% of its search effort to B, and 75% to C.
 #' @param s0 numeric value length should be either 1 or 3. Base survival probability for all (`length = 1`) or each (`length = 3`) species
-#' @param disturb_type character string, one of: `c("point-source", "regional", or NULL)`. `"point-source"` applies a disturbance event with magnitude = `disturb_mag` to each patch with probability = `disturb_p` for each time step, and the magnitude of the disturbance decays moving downstream according to `disturb_rho` argument. `"regional"` applies a disturbance to the entire network in a given time step with probability = `disturb_p`. The magnitude of the disturbance varies based on the `environment_value`. `NULL` does not apply any disturbance events.
+#' @param disturb_type character string, one of: `c("regional", or NULL)`.
+#'  `NULL` does not apply any disturbance events throughout the simulation.
+#' `"regional"` applies a disturbance to the entire network in a given time step with probability = `disturb_p`. The magnitude of the disturbance varies based on the `disturbance_value`.
+#' Future releases are intended to include a `point-source` argument, where disturbances occur randomly in a patch, and the magnitude decays downstream. This is not currently implemented.
+#' @param disturb_value Numeric vector of length = `n_patch`.
+#' This is optimized to work with branching river networks generated from the the `mcbrnet` package by taking the output of `df_patch$disturbance` from `brnet()` as an input. See `?brnet` for more details.
+#' For 2D habitats, the input value is ignored. The disturbance value is sampled randomly by converting the `disturb_mag_mean` and `disturb_mag_sd` arguments using the inverse logit function. Currently, the value for each patch is randomly sampled and set for the entire simulation run. i.e., there is no spatial correlation or variation through time. This has not been optimized for 2D habitats
 #' @param disturb_p single numeric value between 0-1. The probability that a disturbance occurs at a given time step.
-#' @param disturb_mag single numeric value between 0-1. This controls the initial magnitude of impact given a disturbance occurs. For example, if a disturbance does occur, a value of 0.1, or 0.75 results in population abundances for each species being reduced by 10 or 75%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.
-#' @param disturb_rho Single numeric value >= 0. controls how quickly disturbance diminish with distance: 0 = no decay, all patches experience equal impact; 10 impact rapidly decays, with adjacent patches hardly being affected.
-#' @param disturb_decay Single numeric value from 0 to 1. Indicates what percent of the disturbance remains at the next patch (i.e. 0.1, 0.5, 0.75, 1 = 10, 50, 75 and 100% of disturbance impacts in adjacent patch, respectively.
+#' @param disturb_mag single numeric value between 0-1. This controls the mean disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
+#' @param disturb_sd single numeric value. This controls the variation in the disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
 #' @param n_burnin Single numeric value. The number of time-steps to occur before recording values. default = 200,
 #' @param n_timestep Single numeric value. The number of time-steps to be saved. default =  1000
-#' @param plot_disturbance logical. If `TRUE` plots all patches that underwent a disturbance event.
-#' @param plot_fcl logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps.
+#' @param plot_fcl logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps. FCL is a state value describing the number and identity of species present: FCL = 0 when no species are present, 1 = B only, 2 = B + C, 2.5 = B + P, 3 = B + C + P.
 #' @param plot_patch_dynamics logical. If `TRUE` plots population abundances through time for 5 random patches.
 #'
 #' @return `sp_dynamics` a data frame containing simulated IGP community dynamics.
@@ -55,7 +61,7 @@ igp_sim <- function(n_patch = 20,
                     landscape_size = 10,
                     adjacency_matrix = NULL,
                     k_function = NULL,
-                    #c("patches-upstream", "random", "environment")
+                    #c("patches-upstream", "environment")
                     n_upstream = NULL,
                     environment_value = NULL,
                     k_base = 150,
@@ -73,19 +79,15 @@ igp_sim <- function(n_patch = 20,
                     alphap = 4,
                     betabc = 20,
                     betap = 20,
-                    P_pref = 0.25, # preference of B over C
+                    P_pref = NULL, # preference of B over C
                     s0 = 0.75,
                     disturb_type = NULL, #c(NULL, "point-source", "regional")
                     disturb_value = NULL,
                     disturb_p = 1e-4,
                     disturb_mag_mean = 0.9,
                     disturb_mag_sd = 0.1,
-                    disturb_rho = 1, # 2D habitats
-                    disturb_decay = 0.75, # downstream
                     n_burnin = 200,
                     n_timestep = 1000,
-                    plot_disturbance = FALSE,
-                    # add disturb_type = "regional" subroutine
                     plot_fcl = FALSE,
                     plot_patch_dynamics = FALSE){
   # need to import functions:
@@ -123,6 +125,16 @@ igp_sim <- function(n_patch = 20,
                     n_patch = n_patch)
   dist_mat = dist_structure$dist_mat
   river_network_structure = dist_structure$river_network_structure
+
+  if(river_network_structure == TRUE & is.null(disturbance_value)){
+    stop("Disturbance value from 'mcbrnet' is needed for branching habitats")
+  }
+
+  if(river_network_structure == FALSE & !is.null(disturbance_value)){
+    warning("Disturbance value is provided for 2D habitat, disturbance values overwritten with random sample")
+  }
+
+  # disturbance value for 2D habitats
   if(river_network_structure == FALSE){
     environment_value <- rnorm(n_patch, mean = 0, sd = 1)
     disturb_value <- boot::inv.logit(rnorm(n_patch,
@@ -429,37 +441,7 @@ igp_sim <- function(n_patch = 20,
       print(patch_plot)
     }
   }
-  # plot disturbance ####
-  # plot of patches with disturbances
 
-  # add disturb_type = "regional" subroutine
-  # plot 5 random patches, but show time point when disturbance occurred
-  # title = "5 random patches experiencing regional disturbance"
-  if(plot_disturbance == TRUE){
-    dist_patch <- dplyr::filter(dat, disturbance == 1) %>%
-      select(patch) %>% unique() %>% pull()
-    dist_dat <- filter(dat, patch %in% dist_patch)
-    dist_point <- dplyr::filter(dat, disturbance == 1)
-    if(nrow(dist_dat) >0){
-      dist_plot <- ggplot(dist_dat,
-                          aes(y = value,
-                              x = time,
-                              color = species))+
-        geom_line() +
-        geom_point(inherit.aes = FALSE,
-                   data = dist_point,
-                   mapping = aes(x = time,
-                                 y = -15),
-                   shape = 2,
-                   size = 2) +
-        facet_wrap(.~patch, labeller = label_both) +
-        labs(y = "Abundance",
-             title = "All patches experiencing disturbances") +
-        theme_bw() +
-        NULL
-      print(dist_plot)
-    } else {message("No disturbances occured")}
-  }
 
   # return ####
   return(list(sp_dynamics = dat,
