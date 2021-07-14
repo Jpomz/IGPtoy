@@ -1,6 +1,6 @@
 #' Internal function used to calculate carrying capacity within `igp_sim()`
 #'
-#' @param k_function Character string, one of c("patches upstream", "random", "environment", or NULL).
+#' @param k_function Character string, one of c("patches upstream", "environment", or NULL).
 #' @param k_base Numeric input scaling the carrying capacity. See details for more information.
 #' @param r_max Maximum reproductive rate of basal species, B
 #' @param n_upstream Vector of length = n_patch describing the number (n+1) of upstream patches. Terminal upstream patches have a value of 1.
@@ -48,19 +48,6 @@ k_function_internal <- function(k_function, k_base, r_max,
                                 n_upstream = n_upstream,
                                 n_patch = n_patch)
         return(b_k_list)
-      }
-      if(k_function == "random"){
-        if(is.null(k_base)){
-          stop("k_function is `random` and k_base argument is empty; supply value for k_base")
-        }
-        message(
-          paste(
-            "k in each patch is sampled from a Poisson distribution with mean and variance of",
-            k_base))
-        k = rpois(n = n_patch, lambda = k_base)
-        b = calc_b(r_max = r_max, k = k)
-        return(list(k = k, b = b))
-
       }
       if(k_function == "environment"){
         if(is.null(environment_value))
