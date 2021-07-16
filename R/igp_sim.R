@@ -421,7 +421,7 @@ igp_sim <- function(n_patch = 20,
         ggplot(aes(x = time, y = mean_fcl)) +
         geom_point() +
         stat_smooth(method = "loess") +
-        geom_vline(inherit.aes = FALSE,
+        geom_vline(#inherit.aes = FALSE,
                    data = dist_dat,
                    mapping = aes(xintercept = time),
                    linetype = 2,
@@ -460,7 +460,7 @@ igp_sim <- function(n_patch = 20,
         geom_point(inherit.aes = FALSE,
                    data = dist_dat,
                    mapping = aes(x = time,
-                                 y = -15),
+                                 y = -5),
                    shape = 2,
                    size = 2) +
         facet_wrap(.~patch, labeller = label_both) +
