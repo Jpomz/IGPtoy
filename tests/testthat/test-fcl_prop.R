@@ -4,7 +4,7 @@ test_that("fcl_prop output names", {
       rep(c(0, 1, 2, 2.5, 3),
           each = 3)))
   expect_identical(names.out,
-                   c("p0", "p1", "p2", "p2.5", "p3"))
+                   c("No_spp", "B_only", "B_C", "B_P", "B_C_P"))
 })
 
 test_that("fcl_prop output values", {

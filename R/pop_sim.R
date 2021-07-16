@@ -40,6 +40,10 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
   wbp = P_pref * (alphap * N[1,] * N[3,]/(betap * N[3,] + N[1,]))
   wcp = (1 - P_pref) * (alphap * N[2,] * N[3,]/(betap * N[3,] + N[2,]))
 
+  # lambda: proportion of B in P diet
+  w_dot_p = wbp + wcp
+  lambda_b = wbp / w_dot_p
+
   # survival ####
   B_prime = v_s0[1] * (N[1,] - wbc - wbp)
   C_prime = v_s0[2] * (N[2,] - wcp)
@@ -62,5 +66,5 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
   N[is.nan(N)] <- 0
   N[is.na(N)] <- 0
   N[N <0 ] <- 0
-  return(list(N = N, obs_P_pref = P_pref))
+  return(list(N = N, lambda_b = lambda_b))
 }

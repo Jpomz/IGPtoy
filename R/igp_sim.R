@@ -47,7 +47,7 @@
 #'
 #' @importFrom dplyr %>% bind_rows filter pull select summarize group_by
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw
+#' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw geom_smooth
 #' @importFrom boot logit inv.logit
 #'
 #' @export
@@ -326,7 +326,7 @@ igp_sim <- function(n_patch = 20,
             r_max = r_max)
 
     N = pop_sim_out$N
-    obs_P_pref = pop_sim_out$obs_P_pref
+    lambda_b = pop_sim_out$lambda_b
 
     # disturbance ####
     disturb_result = disturb_internal(
@@ -354,7 +354,7 @@ igp_sim <- function(n_patch = 20,
 
       # food chain length state
       fcl = get_fcl(N = N,
-                    obs_P_pref = obs_P_pref)
+                    lambda_b = lambda_b)
 
       # path_dynamics output
       out = cbind(1:n_patch,
@@ -363,7 +363,7 @@ igp_sim <- function(n_patch = 20,
                   k,
                   patch_extinction,
                   fcl,
-                  obs_P_pref)
+                  lambda_b)
       colnames(out) <- c("patch",
                          "B",
                          "C",
@@ -372,7 +372,7 @@ igp_sim <- function(n_patch = 20,
                          "basal_k",
                          "disturbance",
                          "fcl",
-                         "obs_P_pref")
+                         "lambda_b")
       output[[counter]] <- as.data.frame(out)
       fcl_list[[counter]] <- fcl_prop(get_fcl_state(N))
       counter = counter + 1
@@ -420,7 +420,7 @@ igp_sim <- function(n_patch = 20,
       mean_fcl_plot <- mean_fcl_dat %>%
         ggplot(aes(x = time, y = mean_fcl)) +
         geom_point() +
-        stat_smooth(method = "loess") +
+        geom_smooth(method = "loess") +
         geom_vline(#inherit.aes = FALSE,
                    data = dist_dat,
                    mapping = aes(xintercept = time),
@@ -435,7 +435,7 @@ igp_sim <- function(n_patch = 20,
       mean_fcl_plot <- mean_fcl_dat %>%
         ggplot(aes(x = time, y = mean_fcl)) +
         geom_point() +
-        stat_smooth(method = "loess") +
+        geom_smooth(method = "loess") +
         theme_bw() +
         labs(y = "FCL",
              title = "Mean FCL through time") +
