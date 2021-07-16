@@ -384,6 +384,10 @@ igp_sim <- function(n_patch = 20,
   dat <- dplyr::bind_rows(output)
   dat <- tidyr::pivot_longer(dat, 2:4, names_to = "species")
 
+  mean_fcl_dat <- dat %>%
+    group_by(time) %>%
+    summarize(mean_fcl = mean(fcl))
+
   fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 1:n_timestep)
   fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "community")
 
@@ -411,12 +415,8 @@ igp_sim <- function(n_patch = 20,
     message("mean FCL plot using 'loess' smoothing function")
     dist_dat <- dplyr::filter(dat, disturbance == 1)
 
-    mean_fcl_dat <- dat %>%
-      group_by(time) %>%
-      summarize(mean_fcl = mean(fcl))
 
     if(nrow(dist_dat) >0){
-      min_fcl <- min(dat$fcl)
       mean_fcl_plot <- mean_fcl_dat %>%
         ggplot(aes(x = time, y = mean_fcl)) +
         geom_point() +
