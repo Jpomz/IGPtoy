@@ -38,14 +38,14 @@
 #' @param disturb_sd single numeric value. This controls the variation in the disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
 #' @param n_burnin Single numeric value. The number of time-steps to occur before recording values. default = 200,
 #' @param n_timestep Single numeric value. The number of time-steps to be saved. default =  1000
-#' @param plot_fcl logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps. FCL is a state value describing the number and identity of species present: FCL = 0 when no species are present, 1 = B only, 2 = B + C, 2.5 = B + P, 3 = B + C + P.
 #' @param plot_patch_dynamics logical. If `TRUE` plots population abundances through time for 5 random patches.
-#'
+#' @param plot_mean_fcl
+#' @param plot_fcl_state logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps. FCL is a state value describing the number and identity of species present: FCL = 0 when no species are present, 1 = B only, 2 = B + C, 2.5 = B + P, 3 = B + C + P.
 #' @return `sp_dynamics` a data frame containing simulated IGP community dynamics.
 #' @return `fcl` a data frame containing the proportion of patches that have a given food chain length for each time step.
 #' @return `sim_params` a data frame which contains the parameter values used in the simulation. This data frame is a single row, unless one of the following argument is of length = 3: `p_dispersal`, `s0`, or `theta`, in which case the data frame will be 3 rows, corresponding to species B, C, and P, respectively.
 #'
-#' @importFrom dplyr %>% bind_rows filter pull select
+#' @importFrom dplyr %>% bind_rows filter pull select summarize group_by
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw
 #' @importFrom boot logit inv.logit
@@ -88,8 +88,9 @@ igp_sim <- function(n_patch = 20,
                     disturb_mag_sd = 0.1,
                     n_burnin = 200,
                     n_timestep = 1000,
-                    plot_fcl = FALSE,
-                    plot_patch_dynamics = FALSE){
+                    plot_patch_dynamics = FALSE,
+                    plot_mean_fcl = FALSE,
+                    plot_fcl_state = FALSE){
   # need to import functions:
   # dplyr:: bind_rows %>%
   # tidyr:: pivot_longer
@@ -235,6 +236,7 @@ igp_sim <- function(n_patch = 20,
   }
   if(is.numeric(P_pref) & length(P_pref == 1)){
     fixed_P_pref = TRUE
+    P_pref = rep(P_pref, n_patch)
     message(paste("Predator preference is set at", P_pref))
   }
 
@@ -308,7 +310,7 @@ igp_sim <- function(n_patch = 20,
                 ncol = n_patch)
 
     # pop_sim() ####
-    N = pop_sim(N = N,
+    pop_sim_out = pop_sim(N = N,
             P_pref = P_pref,
             fixed_P_pref = fixed_P_pref,
             alphabc = alphabc,
@@ -322,6 +324,9 @@ igp_sim <- function(n_patch = 20,
             b = b,
             k = k,
             r_max = r_max)
+
+    N = pop_sim_out$N
+    obs_P_pref = pop_sim_out$obs_P_pref
 
     # disturbance ####
     disturb_result = disturb_internal(
@@ -348,10 +353,8 @@ igp_sim <- function(n_patch = 20,
     if(i > n_burnin){
 
       # food chain length state
-      fcl = get_fcl(N = N)
-
-      # observed predator preference
-      obs_P_pref = prey_preference(e1 = ebp, e2 = ecp, N1 = N[1,], N2 = N[2,])
+      fcl = get_fcl(N = N,
+                    obs_P_pref = obs_P_pref)
 
       # path_dynamics output
       out = cbind(1:n_patch,
@@ -382,23 +385,64 @@ igp_sim <- function(n_patch = 20,
   dat <- tidyr::pivot_longer(dat, 2:4, names_to = "species")
 
   fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 1:n_timestep)
-  fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "fcl_state")
+  fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "community")
 
   # Plots -------------------------------------------------------------------
 # plot FCL ####
   # plot of food chain length
-  if(plot_fcl == TRUE){
-    fcl_plot <-
+  if(plot_fcl_state == TRUE){
+    fcl_df$community = factor(
+      fcl_df$community,
+      levels = c("No_spp", "B_only", "B_C", "B_P", "B_C_P"))
+
+    fcl_state_plot <-
       ggplot(fcl_df,
-             aes(y = value, x = time, color = fcl_state)) +
+             aes(y = value, x = time, color = community)) +
       geom_step() +
-      facet_wrap(.~fcl_state) +
+      facet_wrap(.~community) +
       theme_bw() +
       labs(y = "proportion of patches",
-           title = "Food chain length State") +
+           title = "Community composition") +
       NULL
-    print(fcl_plot)
+    print(fcl_state_plot)
   }
+
+  if(plot_mean_fcl == TRUE){
+    message("mean FCL plot using 'loess' smoothing function")
+    dist_dat <- dplyr::filter(dat, disturbance == 1)
+
+    mean_fcl_dat <- dat %>%
+      group_by(time) %>%
+      summarize(mean_fcl = mean(fcl))
+
+    if(nrow(dist_dat) >0){
+      min_fcl <- min(dat$fcl)
+      mean_fcl_plot <- mean_fcl_dat %>%
+        ggplot(aes(x = time, y = mean_fcl)) +
+        geom_point() +
+        stat_smooth(method = "loess") +
+        geom_vline(inherit.aes = FALSE,
+                   data = dist_dat,
+                   mapping = aes(xintercept = time),
+                   linetype = 2,
+                   size = 1,
+                   alpha = 0.25) +
+        theme_bw() +
+        labs(y = "FCL",
+             title = "Mean FCL through time") +
+        NULL
+    } else {
+      mean_fcl_plot <- mean_fcl_dat %>%
+        ggplot(aes(x = time, y = mean_fcl)) +
+        geom_point() +
+        stat_smooth(method = "loess") +
+        theme_bw() +
+        labs(y = "FCL",
+             title = "Mean FCL through time") +
+        NULL}
+    print(mean_fcl_plot)
+  }
+
 
   # plot patch dynamics ####
   # plot of patch dynamics
@@ -448,5 +492,6 @@ igp_sim <- function(n_patch = 20,
                                        basal_k = c(k),
                                        dens_dep_reg = c(b)),
               fcl_state_prop = fcl_df,
+              mean_fcl = mean_fcl_dat,
               sim_params = param_df))
 }

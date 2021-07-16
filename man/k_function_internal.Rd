@@ -18,7 +18,7 @@ k_function_internal(
 )
 }
 \arguments{
-\item{k_function}{Character string, one of c("patches upstream", "random", "environment", or NULL).}
+\item{k_function}{Character string, one of c("patches upstream", "environment", or NULL).}
 
 \item{k_base}{Numeric input scaling the carrying capacity. See details for more information.}
 

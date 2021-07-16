@@ -27,40 +27,39 @@ igp_sim(
   alphap = 4,
   betabc = 20,
   betap = 20,
-  P_pref = 0.25,
+  P_pref = NULL,
   s0 = 0.75,
   disturb_type = NULL,
   disturb_value = NULL,
   disturb_p = 1e-04,
   disturb_mag_mean = 0.9,
   disturb_mag_sd = 0.1,
-  disturb_rho = 1,
-  disturb_decay = 0.75,
   n_burnin = 200,
   n_timestep = 1000,
-  plot_disturbance = FALSE,
-  plot_fcl = FALSE,
-  plot_patch_dynamics = FALSE
+  plot_patch_dynamics = FALSE,
+  plot_mean_fcl = FALSE,
+  plot_fcl_state = FALSE
 )
 }
 \arguments{
 \item{n_patch}{single numeric value. Total number of patches in simulation}
 
-\item{n_0}{numeric value length should be either 1 or 3. starting abundances for species in each patch. If only one value is supplied it is assumed to be the same for all three species. Can designate starting values for each species with a vector of length 3. If NULL starting abundances for B, C, and P are 0.8, 0.5, and 0.25 * k_base, respectively.}
+\item{n_0}{\code{NULL} or numeric vector length either 1 or 3. Starting abundances for species in each patch. If only one value is supplied it is assumed to be the same for all three species. Can designate starting values for each species with a vector of length 3. If \code{NULL} starting abundances for B, C, and P are 0.8, 0.5, and 0.25 * \code{k_base}, respectively.}
 
-\item{dist_mat}{square distance matrix describing distance of all patches. If it is NULL, assumes a square landscape with \code{length = landscape_size}}
+\item{dist_mat}{square distance matrix describing distance of all patches. If it is \code{NULL} simulates a square landscape with \code{length = landscape_size}, with \code{n_patch} randomly distributed.}
 
-\item{landscape_size}{single numeric value. Length of a landscape on a side.}
+\item{landscape_size}{single numeric value. Length of a square landscape on a side.}
 
-\item{adjacency_matrix}{square matrix describing which patches are adjacent to one another.}
+\item{adjacency_matrix}{square matrix describing which patches are adjacent to one another. For branching river networks, use \code{net$adjacency_matrix} from \code{mcbrnet::brnet()} as the input argument.}
 
-\item{k_function}{character string, one of: \code{c("patches-upstream", "random", "environment", NULL)}. \code{"patches-upstream"} calculates carrying capacity based on the number of nodes upstream. \code{"random"} assigns an integer value to each patch from a Poisson distribution with \code{lambda = k_base}. \code{"environment"} calculates K based on \code{df_patch$environment} value returned from \code{brnet()} function. \code{NULL} assumes that \code{k = k_base} in all patches.}
+\item{k_function}{character string, one of: \code{c("patches-upstream", "environment", NULL)}. \code{"patches-upstream"} calculates carrying capacity based on the number of nodes upstream. See \code{?k_n_upstream} for details.
+\code{"environment"} calculates K based on \code{df_patch$environment} value returned from \code{brnet()} function. \code{NULL} assumes that \code{k = k_base} in all patches.}
 
-\item{n_upstream}{numeric vector of \code{length = n_patch}. used if \code{k_function = "patches-upstream"}}
+\item{n_upstream}{numeric vector of \code{length = n_patch}. Used if \code{k_function = "patches-upstream"}. Use \code{df_patch$n_patch_upstream} from \code{mcbrnet::brnet()}.}
 
-\item{environment_value}{numeric vector of \code{length = n_patch}. used if \code{k_function = "environment"}}
+\item{environment_value}{numeric vector of \code{length = n_patch}. used if \code{k_function = "environment"}. Use \code{df_patch$environment} from \code{mcbrnet::brnet()}.}
 
-\item{k_base}{single numeric value. Used to calculate carrying capacity, K. see ?k_function_internal for more.}
+\item{k_base}{single numeric value. Used to calculate carrying capacity, K. see \code{?k_function_internal} for more.}
 
 \item{k_c}{single numeric value. Constant used to calculate K when \code{k_function = "patches-upstream"}. Default = 10}
 
@@ -68,13 +67,13 @@ igp_sim(
 
 \item{k_max_exponent}{single numeric value. Maximum value of a uniform distribution for the exponent used to calculate K when \code{k_function = "patches_upstream"}}
 
-\item{p_dispersal}{numeric value (length should be one or 3). Probability of dispersal.}
+\item{p_dispersal}{numeric value describing the probability of dispersal. For example, a value of 0.1 means that 10\% of the population abundance emmigrates from each patch in each time step. If length = 1, assumed to be same for all three species. To set probability independently for species, B, C, and P, use a vector of length = 3.}
 
 \item{theta}{numeric value of length 1 or 3. Dispersal parameter describing dispersal capability of species. If length(theta) = 1 it is the same for all three species. Can be set for each species with vector of length = 3.}
 
 \item{r_max}{single numeric value. Maximum reproductive number for the basal species, B, of the Beverton-Holt model.}
 
-\item{ebc}{single Numeric value. Conversion efficiency of turning B biomass into new C biomass}
+\item{ebc}{single Numeric value. Conversion efficiency of turning B biomass into new C biomass.}
 
 \item{ebp}{single Numeric value. Conversion efficiency of turning B biomass into new P biomass}
 
@@ -88,29 +87,33 @@ igp_sim(
 
 \item{betap}{single numeric value. Parameter controlling the predation of both resources by consumer P}
 
-\item{P_pref}{single numeric value between 0-1 or NULL. Predator preference of B over C. if \code{NULL} (maybe NA?) calculates predator preference based on conversion efficiency rates and relative abundances of both prey species, i.e., Holling's "type 3" response.}
+\item{P_pref}{single numeric value between 0-1 or NULL. Predator preference of B over C. If \code{P_pref = NULL}, default, calculates predator preference independently for each patch and time step, using the \code{prey_preference()} function. Preference is a function of conversion efficiency rates \verb{(ebp, ecp)} and observed prey abundances of both prey species in each patch and time step. i.e., Holling's "type 3" response.
+If value is supplied to \code{P_pref}, it is fixed in all patches and all time steps. i.e., \code{P_pref = 0.25} means that the predator will always allocate 25\% of its search effort to B, and 75\% to C.}
 
 \item{s0}{numeric value length should be either 1 or 3. Base survival probability for all (\code{length = 1}) or each (\code{length = 3}) species}
 
-\item{disturb_type}{character string, one of: \verb{c("point-source", "regional", or NULL)}. \code{"point-source"} applies a disturbance event with magnitude = \code{disturb_mag} to each patch with probability = \code{disturb_p} for each time step, and the magnitude of the disturbance decays moving downstream according to \code{disturb_rho} argument. \code{"regional"} applies a disturbance to the entire network in a given time step with probability = \code{disturb_p}. The magnitude of the disturbance varies based on the \code{environment_value}. \code{NULL} does not apply any disturbance events.}
+\item{disturb_type}{character string, one of: \verb{c("regional", or NULL)}.
+\code{NULL} does not apply any disturbance events throughout the simulation.
+\code{"regional"} applies a disturbance to the entire network in a given time step with probability = \code{disturb_p}. The magnitude of the disturbance varies based on the \code{disturb_value}.
+Future releases are intended to include a \code{point-source} argument, where disturbances occur randomly in a patch, and the magnitude decays downstream. This is not currently implemented.}
+
+\item{disturb_value}{Numeric vector of length = \code{n_patch}.
+This is optimized to work with branching river networks generated from the the \code{mcbrnet} package by taking the output of \code{df_patch$disturbance} from \code{brnet()} as an input. See \code{?brnet} for more details.
+For 2D habitats, the input value is ignored. The disturbance value is sampled randomly by converting the \code{disturb_mag_mean} and \code{disturb_mag_sd} arguments using the inverse logit function. Currently, the value for each patch is randomly sampled and set for the entire simulation run. i.e., there is no spatial correlation or variation through time. This has not been optimized for 2D habitats}
 
 \item{disturb_p}{single numeric value between 0-1. The probability that a disturbance occurs at a given time step.}
-
-\item{disturb_rho}{Single numeric value >= 0. controls how quickly disturbance diminish with distance: 0 = no decay, all patches experience equal impact; 10 impact rapidly decays, with adjacent patches hardly being affected.}
-
-\item{disturb_decay}{Single numeric value from 0 to 1. Indicates what percent of the disturbance remains at the next patch (i.e. 0.1, 0.5, 0.75, 1 = 10, 50, 75 and 100\% of disturbance impacts in adjacent patch, respectively.}
 
 \item{n_burnin}{Single numeric value. The number of time-steps to occur before recording values. default = 200,}
 
 \item{n_timestep}{Single numeric value. The number of time-steps to be saved. default =  1000}
 
-\item{plot_disturbance}{logical. If \code{TRUE} plots all patches that underwent a disturbance event.}
-
-\item{plot_fcl}{logical. If \code{TRUE} plots the proportion of patches with a given food chain length through all time-steps.}
-
 \item{plot_patch_dynamics}{logical. If \code{TRUE} plots population abundances through time for 5 random patches.}
 
-\item{disturb_mag}{single numeric value between 0-1. This controls the initial magnitude of impact given a disturbance occurs. For example, if a disturbance does occur, a value of 0.1, or 0.75 results in population abundances for each species being reduced by 10 or 75\%, respectively. Assuming a single disturbance (i.e. adjacent or upstream patches not also disturbed) this values indicates the maximum disturbance magnitude a patch will be subjected to in a single time step.}
+\item{plot_fcl_state}{logical. If \code{TRUE} plots the proportion of patches with a given food chain length through all time-steps. FCL is a state value describing the number and identity of species present: FCL = 0 when no species are present, 1 = B only, 2 = B + C, 2.5 = B + P, 3 = B + C + P.}
+
+\item{disturb_mag}{single numeric value between 0-1. This controls the mean disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.}
+
+\item{disturb_sd}{single numeric value. This controls the variation in the disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.}
 }
 \value{
 \code{sp_dynamics} a data frame containing simulated IGP community dynamics.

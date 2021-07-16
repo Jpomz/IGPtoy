@@ -27,10 +27,10 @@ fcl_prop <- function(fcl){
   prop_2 = length(fcl[fcl == 2]) / length(fcl)
   prop_25 = length(fcl[fcl == 2.5]) / length(fcl)
   prop_3 = length(fcl[fcl == 3]) / length(fcl)
-  fcl_prop = (c("p0" = prop_0,
-                "p1" = prop_1,
-                "p2" = prop_2,
-                "p2.5" = prop_25,
-                "p3" = prop_3))
+  fcl_prop = (c("No_spp" = prop_0,
+                "B_only" = prop_1,
+                "B_C" = prop_2,
+                "B_P" = prop_25,
+                "B_C_P" = prop_3))
   fcl_prop
 }

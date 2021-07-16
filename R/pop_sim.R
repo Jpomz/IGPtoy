@@ -62,5 +62,5 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
   N[is.nan(N)] <- 0
   N[is.na(N)] <- 0
   N[N <0 ] <- 0
-  N
+  return(list(N = N, obs_P_pref = P_pref))
 }
