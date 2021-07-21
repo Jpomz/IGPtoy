@@ -47,7 +47,7 @@
 #'
 #' @importFrom dplyr %>% bind_rows filter pull select summarize group_by
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw geom_smooth
+#' @importFrom ggplot2 ggplot aes facet_grid facet_wrap geom_line geom_point label_both labeller labs geom_step theme_bw geom_smooth geom_vline
 #' @importFrom boot logit inv.logit
 #'
 #' @export
@@ -382,14 +382,14 @@ igp_sim <- function(n_patch = 20,
 
   # make sure that these functions are properly imported
   dat <- dplyr::bind_rows(output)
-  dat <- tidyr::pivot_longer(dat, 2:4, names_to = "species")
+  dat <- tidyr::pivot_longer(dat, 2:4, names_to = "species", values_to = "pop_density")
 
   mean_fcl_dat <- dat %>%
     group_by(time) %>%
     summarize(mean_fcl = mean(fcl))
 
   fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 1:n_timestep)
-  fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "community")
+  fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "community", values_to = "proportion")
 
   # Plots -------------------------------------------------------------------
 # plot FCL ####
@@ -401,7 +401,7 @@ igp_sim <- function(n_patch = 20,
 
     fcl_state_plot <-
       ggplot(fcl_df,
-             aes(y = value, x = time, color = community)) +
+             aes(y = proportion, x = time, color = community)) +
       geom_step() +
       facet_wrap(.~community) +
       theme_bw() +
@@ -453,7 +453,7 @@ igp_sim <- function(n_patch = 20,
 
     if(nrow(dist_dat) >0){
       patch_plot <- ggplot(plot_dat,
-                           aes(y = value,
+                           aes(y = pop_density,
                                x = time,
                                color = species))+
         geom_line() +
@@ -471,7 +471,7 @@ igp_sim <- function(n_patch = 20,
       print(patch_plot)
     } else {
       patch_plot <- ggplot(plot_dat,
-                           aes(y = value,
+                           aes(y = pop_density,
                                x = time,
                                color = species))+
         geom_line() +

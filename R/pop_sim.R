@@ -44,6 +44,10 @@ pop_sim <- function(N, P_pref, fixed_P_pref,
   w_dot_p = wbp + wcp
   lambda_b = wbp / w_dot_p
 
+  # when P is exctinct, lamba_b = NaN
+  # remove these from output
+  lambda_b[is.nan(lambda_b)] <- 0
+
   # survival ####
   B_prime = v_s0[1] * (N[1,] - wbc - wbp)
   C_prime = v_s0[2] * (N[2,] - wcp)
