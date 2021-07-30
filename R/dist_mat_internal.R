@@ -1,10 +1,13 @@
 #' Internal distance matrix function
 #'
+#' @description Function used internally by `igp_sim()`. Checks that supplied distance matrix is in correct format and returns it. If no matrix is supplied, it calculates one and returns it.
 #' @param dist_mat Distance matrix describing the spatial arrangement of patches. should be a square matrix with `ncol = nrow = n_patch` and `diagonal = 0`. If `dist_mat = NULL`, a square landscape with dimension `landscape_size` and `n_patch` randomly distributed will be calculated.
 #' @param landscape_size Size of each side of randomly generated 2D habitat. Only used if `dist_mat = NULL`
 #' @param n_patch the number of patches, inherited from the `igp_sim()` function argument.
 #'
-#' @return Checks that supplied distance matrix is in correct format and returns it. If no matrix is supplied, it calculates one and returns it.
+#' @return `dist_mat` distance matrix. Returns value supplied in `igp_sim()`, or if no value supplied, calculates one by randomly distributing `n_patch` in a square landscape of size = `landscape_size`
+#' `river_network_structure` Logical. `TRUE` if habitat architecture is a branching river network, or `FALSE` if a square landscape.
+#'
 #' @export
 #'
 #' @examples
@@ -17,7 +20,9 @@
 #'
 #' dist_mat_internal(dist_mat = dist_mat, landscape_size = 10, n_patch = n_patch)
 #'
-dist_mat_internal <- function(dist_mat, landscape_size, n_patch){
+dist_mat_internal <- function(dist_mat,
+                              landscape_size,
+                              n_patch){
   if(!is.null(dist_mat)){
     if (!is.matrix(dist_mat))
       stop("distance matrix should be provided as matrix")

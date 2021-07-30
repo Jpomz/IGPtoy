@@ -1,12 +1,17 @@
 #' population dynamic function for each time step
 #'
+#' @description Internal function used by `igp_sim()` to simulate population dynamics for each time step. Inherits all arguments from `igp_sim()` call or other variables calculated internally.
+#'
 #' @param N Abundance matrix at time t
 #' @param P_pref value for the predator preference of B over C, numeric between 0-1 or NULL
 #' @param fixed_P_pref Logical indicating if P_pref is a fixed value `TRUE`, or if it varies based on prey abundances `FALSE`. This is determined internally based on the input to `P_pref` in `igp_sim()`
 #' @param alphabc Parameter controlling the predation of resource B by consumer C
 #' @param betabc Parameter controlling the predation of resource B by consumer C
+#' @param ebc conversion efficiency of turning consumed B into new C
 #' @param alphap Parameter controlling the predation of both resources by consumer P
 #' @param betap Parameter controlling the predation of both resources by consumer P
+#' @param ebp conversion efficiency of turning consumed B into new P
+#' @param ecp conversion efficiency of turning consumed C into new P
 #' @param v_s0 vector of base survival probabilities. created internally based on s0 argument in `igp_sim()`
 #' @param r_max maximum per capita reproduction rate of basal species B
 #' @param b parameter controlling asymptotic level of recruitment, calculated as (r_max - 1) / k
@@ -14,14 +19,25 @@
 #'
 #' @details This function estimates the continuous effects of predation and survival probability through one time step (i.e. 1 season), and discrete reproduction at the end of the time step.
 #'
-#' @return Abundance matrix N, at time t+1.
+#' @return `N` Abundance matrix N, at time t+1.
+#' `lambda_b` Proportion of B in P's diet. Used to caluclate food chain length.
 #' @export
 #'
 #' @examples
-pop_sim <- function(N, P_pref, fixed_P_pref,
-                    alphabc, betabc, ebc,
-                    alphap, betap, ebp, ecp,
-                    v_s0, b, k, r_max){
+pop_sim <- function(N,
+                    P_pref,
+                    fixed_P_pref,
+                    alphabc,
+                    betabc,
+                    ebc,
+                    alphap,
+                    betap,
+                    ebp,
+                    ecp,
+                    v_s0,
+                    b,
+                    k,
+                    r_max){
   # pop_sim() ####
   # predation ####
   if(fixed_P_pref == TRUE){

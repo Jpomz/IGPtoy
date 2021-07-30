@@ -1,6 +1,8 @@
 
 #' Carrying Capacity for basal species B, based on number of upstream nodes
 #'
+#' @description internal function used by `k_function_internal` when `igp_sim(k_function = "patches-upstream")`. Inherits all arguments from `igp_sim()`.
+#'
 #' @param k_base integer
 #' @param k_c numeric
 #' @param k_min_exponent minimum value for exponent describing productivity ~ watershed area relationship. default is 1.10 (Koening et al. 2019) numeric

@@ -1,4 +1,4 @@
-#' Simulate IGP dynamics in 3 species communities through space and time
+#' Simulate trophic dynamics in 3 species communities through space and time
 #'
 #' @param n_patch single numeric value. Total number of patches in simulation
 #' @param n_0 `NULL` or numeric vector length either 1 or 3. Starting abundances for species in each patch. If only one value is supplied it is assumed to be the same for all three species. Can designate starting values for each species with a vector of length 3. If `NULL` starting abundances for B, C, and P are 0.8, 0.5, and 0.25 * `k_base`, respectively.
@@ -34,15 +34,17 @@
 #' This is optimized to work with branching river networks generated from the the `mcbrnet` package by taking the output of `df_patch$disturbance` from `brnet()` as an input. See `?brnet` for more details.
 #' For 2D habitats, the input value is ignored. The disturbance value is sampled randomly by converting the `disturb_mag_mean` and `disturb_mag_sd` arguments using the inverse logit function. Currently, the value for each patch is randomly sampled and set for the entire simulation run. i.e., there is no spatial correlation or variation through time. This has not been optimized for 2D habitats
 #' @param disturb_p single numeric value between 0-1. The probability that a disturbance occurs at a given time step.
-#' @param disturb_mag single numeric value between 0-1. This controls the mean disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
-#' @param disturb_sd single numeric value. This controls the variation in the disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
+#' @param disturb_mag_mean single numeric value between 0-1. This controls the mean disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
+#' @param disturb_mag_sd single numeric value. This controls the variation in the disturbance magnitude in 2D habitat network structures. This argument is ignored in simulations with branching network structure.
 #' @param n_burnin Single numeric value. The number of time-steps to occur before recording values. default = 200,
 #' @param n_timestep Single numeric value. The number of time-steps to be saved. default =  1000
 #' @param plot_patch_dynamics logical. If `TRUE` plots population abundances through time for 5 random patches.
 #' @param plot_mean_fcl
 #' @param plot_fcl_state logical. If `TRUE` plots the proportion of patches with a given food chain length through all time-steps. FCL is a state value describing the number and identity of species present: FCL = 0 when no species are present, 1 = B only, 2 = B + C, 2.5 = B + P, 3 = B + C + P.
 #' @return `sp_dynamics` a data frame containing simulated IGP community dynamics.
-#' @return `fcl` a data frame containing the proportion of patches that have a given food chain length for each time step.
+#' @return `df_patch` a data frame containing information describing each patch
+#' @return `fcl_state_prop` a data frame containing the proportion of patches that have a given community composition for each time step.
+#' @return `mean_fcl` a data frame containing the mean food chain length across all patches in each time step.
 #' @return `sim_params` a data frame which contains the parameter values used in the simulation. This data frame is a single row, unless one of the following argument is of length = 3: `p_dispersal`, `s0`, or `theta`, in which case the data frame will be 3 rows, corresponding to species B, C, and P, respectively.
 #'
 #' @importFrom dplyr %>% bind_rows filter pull select summarize group_by
@@ -68,7 +70,6 @@ igp_sim <- function(n_patch = 20,
                     k_c = 10,
                     k_min_exponent = 1.10,
                     k_max_exponent = 1.35,
-                    #k = 500,
                     p_dispersal = 0.1,
                     theta = 1,
                     r_max = 2.5,
@@ -91,11 +92,6 @@ igp_sim <- function(n_patch = 20,
                     plot_patch_dynamics = FALSE,
                     plot_mean_fcl = FALSE,
                     plot_fcl_state = FALSE){
-  # need to import functions:
-  # dplyr:: bind_rows %>%
-  # tidyr:: pivot_longer
-  # ggplot2
-  #library(tidyverse)
 
   param_df <- data.frame(
     k_base = k_base,
@@ -276,18 +272,12 @@ igp_sim <- function(n_patch = 20,
 
   # if basal species is 0 in a patch
   # make abundance of C and P = 0
-  # make this a function "B_extinct"
   N[,N[1,] == 0] <- 0
 
   # result output ####
   output <- list()
   fcl_list <- list()
-  # record starting conditions
-  #fcl = get_fcl(N = N)
-  #out = cbind(1:n_patch, t(N), i = 1, k, patch_extinction = 0, fcl)
-  #colnames(out) <- c("patch", "B", "C", "P",
-  #                   "time", "basal_k", "disturbance", "fcl")
-  #output[[1]] <- as.data.frame(out)
+
 
   counter = 1 # for recording output at end of simulation loop
 
@@ -388,8 +378,12 @@ igp_sim <- function(n_patch = 20,
     group_by(time) %>%
     summarize(mean_fcl = mean(fcl))
 
-  fcl_df <- data.frame(dplyr::bind_rows(fcl_list), time = 1:n_timestep)
-  fcl_df <- tidyr::pivot_longer(fcl_df, 1:5, names_to = "community", values_to = "proportion")
+  fcl_df <- data.frame(dplyr::bind_rows(fcl_list),
+                       time = 1:n_timestep)
+  fcl_df <- tidyr::pivot_longer(fcl_df,
+                                1:5,
+                                names_to = "community",
+                                values_to = "proportion")
 
   # Plots -------------------------------------------------------------------
 # plot FCL ####

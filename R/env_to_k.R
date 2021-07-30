@@ -1,5 +1,7 @@
 #' Calculate K based on environmental value
 #'
+#' @description function used internally by `k_function_internal` when `igp_sim(k_function = "environment")`. Inherits all arguments from `igp_sim()`.
+#'
 #' @param env Vector of environmental values. Inherited from `igp_sim()` function.
 #' @param k_base Mean carrying capacity K.
 #'
@@ -14,7 +16,8 @@
 #' @examples
 #' env_to_k(env = rnorm(10), k_base = 100)
 #'
-env_to_k <- function(env, k_base){
+env_to_k <- function(env,
+                     k_base){
   if(any(is.na(c(env, k_base)))){
     stop("all inputs to `env_to_k()` need to be defined, \n one or more input values is 'NA' or 'NaN'" )
   }

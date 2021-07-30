@@ -1,13 +1,15 @@
 #' Maximum reproductive rate and carrying capacity for all three species
 #'
+#' @description This is a helper function to estimate reproductive rates and carrying capacity of species C and P.
+#'
 #' @param k_b Carrying capacity of basal species B
 #' @param r_b Maximum reproductive rate of basal species, B
 #' @param ebc conversion efficiency of turning B biomass into new C biomass
 #' @param ebp conversion efficiency of turning B biomass into new P biomass
 #' @param ecp conversion efficiency of turning C biomass into new p biomass
-#' @param alphac parameter controlling predation and reproductive rates of consumer species, C
+#' @param alphabc parameter controlling predation and reproductive rates of consumer species, C
 #' @param alphap parameter controlling predation and reproductive rates of consumer species, P
-#' @param betac parameter controlling predation and reproductive rates of consumer species, C
+#' @param betabc parameter controlling predation and reproductive rates of consumer species, C
 #' @param betap parameter controlling predation and reproductive rates of consumer species, P
 #' @param P_pref The preference that species P has for B over C. Default is `NULL`, and will be calculated based on other parameters (see below). This value can be fixed by the user i.e. `P_pref = 0.25` indicates that the predator spends ~25% of it's time searching for B, and `1 - P_pref = 75%`  of its time searching for C.
 #'
@@ -21,27 +23,27 @@
 #'
 #'
 #'
-#' @return a list with 3 named elements: `max_r` which has the maximum reproductive rates for B and C, and the partitioned and total rates for P; `k` which has the carrying capacity for B and C, and the partitioned and total rates for P; `input` which has the input values used for calculations.
+#' @return a list with 3 named elements: `max_r` which has the maximum reproductive rates for B (`r_b`) and C (`r_c`), and the partitioned (`r_bp`, and `r_cp`) and total rates for P (`r_p_total`); `k` which has the carrying capacity for B (`k_b`) and C (`k_c`), and the partitioned and total rates for P; `input` which has the input values used for calculations.
 #' @export
 #'
-#'@seealso `prey_preference`, `k_n_upstream`
+#' @seealso `prey_preference`
 #'
 #' @examples
 #' r_k_sp(k_b = 500, r_b = 2.5, ebc = 2,ebp = 2, ecp = 2, alphac = 4, alphap = 4, betac = 20, betap = 20, P_pref = NULL)
 #'
-r_k_sp <- function(k_b = 500,
-                r_b = 2.5,
-                ebc = 2,
-                ebp = 2,
-                ecp = 2,
-                alphac = 4,
-                alphap = 4,
-                betac = 20,
-                betap = 20,
-                P_pref = NULL){
+r_k_sp <- function(k_b = 150,
+                   r_b = 2.5,
+                   ebc = 2,
+                   ebp = 2,
+                   ecp = 2,
+                   alphabc = 4,
+                   alphap = 4,
+                   betabc = 20,
+                   betap = 20,
+                   P_pref = NULL){
 
-  r_c = ebc * alphac
-  k_c = k_b*(r_c - 1) / betac
+  r_c = ebc * alphabc
+  k_c = k_b*(r_c - 1) / betabc
 
   if(is.null(P_pref)){
     P_pref = prey_preference(e1 = ebp, e2 = ecp, N1 = k_b, N2 = k_c)
@@ -80,9 +82,9 @@ r_k_sp <- function(k_b = 500,
       ebc = ebc,
       ebp = ebp,
       ecp = ecp,
-      alphac =alphac,
+      alphabc =alphabc,
       alphap =alphap,
-      betac = betac,
+      betabc = betabc,
       betap = betap,
       P_pref = P_pref),
     digits = 2)

@@ -1,5 +1,7 @@
 #' Calculate preference between two prey resources.
 #'
+#' @description Internal function used by `pop_sim()` when `igp_sim(P_pref = NULL)`
+#'
 #' @param e1 Conversion efficiency for prey resource 1. Most often this `ebp`, or the efficiency of turning B biomass into new P biomass.
 #' @param e2 Conversion efficiency for prey resource 2. Most often this `ecp`, or the efficiency of turning C biomass into new P biomass.
 #' @param N1 The population abundance of prey resource 1. Usually this is prey B
@@ -9,7 +11,7 @@
 #'
 #'Preference is calculated as `e1*N1 / (e1*N1 + e2*N2)`
 #'
-#' @return value between 0 and 1
+#' @return value between 0 and 1 describing search preference for resource B by predator P.
 #' @export
 #'
 #' @examples

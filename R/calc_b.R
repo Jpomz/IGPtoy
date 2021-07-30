@@ -1,4 +1,8 @@
-#' calculate parameter b which determines asymptotic level of prey recruitment
+#' Calculate density dependent growth parameter
+#'
+#' @description Internal function used by `k_function_internal` to calculate parameter `b`, which determines asymptotic level of basal species, B, recruitment
+#'
+#' @details b = (r_max - 1) / k
 #'
 #' @param r_max maximum per capita recruitment rate for basal species B
 #' @param k carrying capacity

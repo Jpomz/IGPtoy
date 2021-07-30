@@ -1,4 +1,6 @@
-#' Calculates FCL state
+#' Calculates FCL "state" variable
+#'
+#' @description Internal function used by `igp_sim()` to describe community composition in each patch for each time step
 #'
 #' @param N Matrix of population abundances, where `nrow = 3`, and `ncol = n_patch`.
 #'

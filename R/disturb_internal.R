@@ -8,6 +8,7 @@
 #' If `disturb_type = NULL`, no disturbances will occur in the simulation.
 #' Future releases are intended to include an additional disturbance type for branching river networks: `"point-source"`. Which is intended to apply a disturbance randomly to individual patches, and the magnitude of disturbance will decay downstream. This is not currently implemented.
 #' @param disturb_p probability of disturbance occurring. If `disturb_type = "regional"`, disturbance for the entire meta-community is determined in each time step via `rbinom(n = 1, size = 1, prob = disturb_p)`.
+#' @param river_network_structure Logical indicating if habitat architecture is branching (`TRUE`) or a 2D square (`FALSE`)
 
 
 #' @return List with two elements. `N` = abundance matrix after accounting for disturbances. Values don't necessarily have to be integers. Numeric-double values will be converted to integer with `rpois()` in the simulation function. `patch_extinction` is an integer vector of `length = n_patch` indicating if a disturbance did happen (1) or did not happen (0).

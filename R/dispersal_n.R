@@ -1,4 +1,6 @@
-#' Calculate number of individuals dispersing from patch i to j
+#' Calculate number of individuals dispersing from patch x to y
+#'
+#' @description Internal function used by `igp_sim()` to calculate the number of individuals dispersing from patch x, and distributing them to patches y based on distanced using an exponential decay kernel. This function is called at the beginning of each timestep in the dynamic simulation. Inherits all arguments from `igp_sim()` or other variables calculated internally.
 #'
 #' @param N Abundance matrix with `nrow = n_sp = 3` and `ncol = n_patch`. Rows 1:3 correspond to species B, C, and P respectively.
 #' @param v_p_dispersal A vector of dispersal probabilities of length = 3. in `igp_sim()`, this is controlled with the `p_dispersal` argument. Values should be from 0 to 1
@@ -10,7 +12,7 @@
 #'
 #' @details This function is used internally in `igp_sim()` to calculate the number of individuals of each dispersing from patch i to patch j. Emigrants from patch i are more likely to become Immigrants to patch j if the patches are closer together.
 #'
-#' @return A matrix of abundances after accounting for dispersal with `nrow = n_sp = 3` and `ncol = n_patch`. Values may be returned with decimal values, but will be converted to integers using `rpois()` within the simulation model.
+#' @return `m_n_prime` A matrix of abundances after accounting for dispersal with `nrow = n_sp = 3` and `ncol = n_patch`. Values may be returned with decimal values, but will be converted to integers using `rpois()` within the simulation model.
 #'
 #' @export
 #'
@@ -22,7 +24,23 @@
 #'  x_coord = sort(runif(5, 0, 5))
 #'  y_coord = sort(runif(5, 0, 5))
 #'  dist_mat = data.matrix(dist(cbind(x_coord, y_coord)))
-#' disperal_n(N = N, v_p_dispersal = 0.25, theta = 1, dist_mat = dist_mat)
+#'  v_theta = c(1, 1, 1)
+#'  m_b_dispersal <- data.matrix(exp(-v_theta[1] * dist_mat))
+#'  diag(m_b_dispersal) <- 0
+#' # species C
+#' m_c_dispersal <- data.matrix(exp(-v_theta[2] * dist_mat))
+#' diag(m_c_dispersal) <- 0
+#' # species P
+#' m_p_dispersal <- data.matrix(exp(-v_theta[3] * dist_mat))
+#' diag(m_p_dispersal) <- 0
+#'
+#' disperal_n(N = N,
+#'  v_p_dispersal = 0.25,
+#'  v_theta = 1,
+#'  dist_mat = dist_mat,
+#'  m_b_dispersal = m_b_dispersal,
+#'  m_c_dispersal = m_c_dispersal,
+#'  m_p_dispersal = m_p_dispersal)
 #'
 #'
 dispersal_n <- function(N,
